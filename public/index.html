@@ -1,0 +1,881 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>AI PDF Editor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--ac:#4f46e5;--ac2:#7c3aed;--bg:#eef0f7;--card:#fff;--bd:#e3e6f0;--tx:#1d2136;--mu:#6b7285;--soft:#f5f6ff}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);height:100vh;display:flex;flex-direction:column;color:var(--tx)}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#c5c9de;border-radius:9px}::-webkit-scrollbar-thumb:hover{background:#a9aed0}
+#bar{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--bd);align-items:center;box-shadow:0 3px 14px #1d213610;position:relative;z-index:5}
+.brand{font-weight:800;font-size:17px;letter-spacing:-.3px;background:linear-gradient(90deg,var(--ac),#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent;margin-right:8px;white-space:nowrap}
+.sep{width:1px;height:24px;background:var(--bd);margin:0 4px}
+button,select{font:inherit;padding:6px 12px;border:1px solid var(--bd);background:#fff;border-radius:9px;cursor:pointer;color:var(--tx);transition:background .15s,border-color .15s,transform .15s,box-shadow .15s}
+button:hover{background:var(--soft);border-color:#c7caf3;transform:translateY(-1px);box-shadow:0 3px 8px #4f46e51c}button:active{transform:none;box-shadow:none}
+button.p{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-color:transparent;box-shadow:0 3px 10px #4f46e540}button.p:hover{background:linear-gradient(135deg,#5b52f0,#8b4cf0);box-shadow:0 5px 14px #4f46e55c}
+button.ai{background:linear-gradient(135deg,#0ea5e9,#6366f1 55%,#ec4899);color:#fff;border-color:transparent;box-shadow:0 3px 10px #6366f13d}button.ai:hover{background:linear-gradient(135deg,#27b3f5,#7476f5 55%,#f05aa5)}
+input[type=color]{width:34px;height:32px;padding:2px;border:1px solid var(--bd);border-radius:9px;background:#fff;cursor:pointer}
+#bar label{font-size:12.5px;color:var(--mu);display:inline-flex;align-items:center;gap:4px}.sp{flex:1}
+#main{flex:1;display:flex;min-height:0}
+#thumbs{width:136px;overflow:auto;background:#f7f8fd;border-right:1px solid var(--bd);padding:10px;text-align:center}
+.th{margin-bottom:12px;font-size:11px;color:var(--mu)}.th canvas{width:100%;border:2px solid transparent;border-radius:6px;cursor:pointer;background:#fff;box-shadow:0 2px 8px #1d21362b;transition:.15s}.th canvas:hover{transform:scale(1.03)}.th.a canvas{border-color:var(--ac);box-shadow:0 4px 14px #4f46e54d}
+.th button{padding:0 6px;font-size:11px;border-radius:6px}
+#pages{flex:1;overflow:auto;padding:20px;text-align:center;background:radial-gradient(circle at 1px 1px,#d7daea 1px,transparent 0) 0 0/22px 22px,var(--bg)}
+.pg{position:relative;display:inline-block;margin:0 auto 20px;box-shadow:0 10px 34px #1d213629,0 1px 3px #1d213624;background:#fff;border-radius:3px}
+.pg canvas{display:block;border-radius:3px}.ov{position:absolute;inset:0}
+.it{position:absolute;cursor:pointer;border-radius:3px}.it:hover{background:#4f46e51f}.it.s{background:#4f46e53d;outline:1.5px solid var(--ac)}
+.rg{position:absolute;border:2px dashed #ec4899;background:#ec489922;pointer-events:none;border-radius:3px}
+.empty{margin:70px auto 0;max-width:420px;background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:34px 28px;box-shadow:0 14px 40px #1d213618}.empty .big{font-size:46px}.empty h2{margin:6px 0 4px;font-size:21px}.empty p{color:var(--mu);margin:0 0 14px}
+.chips span{display:inline-block;margin:3px;padding:4px 11px;border-radius:99px;background:var(--soft);color:var(--ac);font-size:12px;font-weight:600}
+#chat{width:360px;background:var(--card);border-left:1px solid var(--bd);display:flex;flex-direction:column}
+#chatHead{padding:12px 14px;border-bottom:1px solid var(--bd);font-weight:700;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#f5f3ff,#fdf2f8)}#chatHead small{font-weight:500;color:var(--mu);margin-left:auto;font-size:11.5px}#chatHead i{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px #22c55e30}
+#log{flex:1;overflow:auto;padding:12px;background:#fafbff}
+.m{margin-bottom:9px;padding:9px 12px;border-radius:14px;white-space:pre-wrap;font-size:13px;max-width:94%;animation:pop .22s ease;box-shadow:0 1px 3px #1d21360f;word-break:break-word}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.u{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;margin-left:auto;border-bottom-right-radius:4px}.a{background:#fff;border:1px solid var(--bd);border-bottom-left-radius:4px}.e{background:#fff1f1;border:1px solid #f6c9c9;color:#8a1f1f}
+#ctx{padding:5px 12px;font-size:12px;color:var(--mu);background:#fff;border-top:1px solid var(--bd)}
+#chat select{width:100%}
+#in{display:flex;gap:8px;padding:12px;border-top:1px solid var(--bd);background:#fff}#in textarea{flex:1;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:11px;resize:none;height:62px;outline:none;transition:.15s}#in textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px #4f46e523}
+#dlg,#dlg2{position:fixed;inset:0;background:#101426a8;backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:30}
+#dlg>div,#dlg2>div{background:#fff;padding:22px 24px;border-radius:18px;box-shadow:0 24px 70px #0006;animation:pop .2s ease}
+#dlg>div{width:440px}#dlg2>div{width:520px;max-height:92vh;overflow:auto}
+#dlg h3,#dlg2 h3{margin:0 0 4px;font-size:19px;background:linear-gradient(90deg,var(--ac),#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+#dlg label,#dlg2 label{display:block;margin:13px 0 5px;font-weight:600;font-size:12.5px;color:var(--mu)}#dlg textarea{width:100%;height:70px}
+#dlg input[type=file],#dlg2 input[type=file]{width:100%;padding:9px;border:1.5px dashed #c3c7ea;border-radius:11px;background:var(--soft);font-size:13px}
+input[type=file]::file-selector-button{margin-right:10px;padding:5px 11px;border:0;border-radius:8px;background:var(--ac);color:#fff;cursor:pointer;font:inherit}
+#dlg input[type=number],#dlg2 input[type=number]{border:1px solid var(--bd);border-radius:9px}
+#dlg2 label.chk{display:flex;align-items:flex-start;gap:8px;color:var(--tx);font-weight:500;background:linear-gradient(135deg,#eef2ff,#fdf2f8);border-radius:11px;padding:9px 11px}
+#sList{margin-top:8px}#sList div{display:flex;align-items:center;gap:7px;padding:5px 7px;border:1px solid var(--bd);border-radius:11px;margin-bottom:5px;font-size:12px;background:#fff;box-shadow:0 1px 3px #1d21360d}#sList b{width:20px;height:20px;border-radius:50%;background:var(--ac);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px}#sList img{width:52px;height:36px;object-fit:cover;border-radius:6px;border:1px solid var(--bd)}#sList span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#sList button{padding:1px 7px;border-radius:7px}#sList select{padding:2px 4px;font-size:11.5px;border-radius:7px}
+.imgp{position:absolute;border:2px solid var(--ac);cursor:move;box-shadow:0 8px 28px #4f46e55e;z-index:20;background:#fff}.imgp img{width:100%;height:100%;display:block;pointer-events:none;user-select:none}.imgp i{position:absolute;right:-9px;bottom:-9px;width:17px;height:17px;border-radius:50%;background:var(--ac);border:2px solid #fff;cursor:nwse-resize;box-shadow:0 2px 6px #0004}
+#imgBar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 14px 44px #1d213652;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:50;animation:pop .2s ease}#imgBar input[type=range]{width:200px;accent-color:var(--ac)}#imgBar span{min-width:92px;font-size:12px;color:var(--mu)}
+#snipBar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 14px 44px #1d213652;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:50;animation:pop .2s ease}#snipBar span{font-size:12px;color:var(--mu)}.imgsel{position:absolute;border:2px dashed var(--ac);background:#4f46e51a;cursor:pointer;z-index:15}.imgsel:hover,.imgsel.on{background:#4f46e545;border-style:solid}
+#findBar{position:fixed;right:380px;top:68px;z-index:25;display:none;align-items:center;gap:6px;padding:9px;background:#fff;border:1px solid var(--bd);border-radius:13px;box-shadow:0 8px 26px #1d213630}#findBar.open{display:flex}#findBar input{width:150px;padding:7px 9px;border:1px solid var(--bd);border-radius:8px;font:inherit}#findBar button{padding:6px 9px}#findCount{font-size:12px;color:var(--mu);white-space:nowrap}#findBar .hit{outline:2px solid #f59e0b!important;background:#f59e0b55!important}#findBar .hit.current{outline:3px solid #ef4444!important;background:#ef444455!important}@media(max-width:900px){#findBar{right:10px;top:70px;left:10px;flex-wrap:wrap}#findBar input{flex:1;min-width:110px}}
+
+#pages .home{max-width:880px;margin:0 auto;padding:26px 8px 40px;text-align:left}
+.hero{position:relative;overflow:hidden;border-radius:24px;padding:38px 36px;color:#fff;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 45%,#ec4899 100%);box-shadow:0 22px 50px #4f46e550}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;background:#ffffff1f}.hero:before{width:260px;height:260px;right:-60px;top:-90px}.hero:after{width:170px;height:170px;right:150px;bottom:-95px}
+.hero h1{margin:0 0 8px;font-size:32px;letter-spacing:-.8px;line-height:1.15;position:relative}.hero p{margin:0;max-width:540px;font-size:15px;opacity:.93;position:relative}
+.hero .cta{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;position:relative}.hero .cta button{padding:10px 18px;border-radius:12px;font-weight:600;border:0}.hero .cta .w{background:#fff;color:var(--ac);box-shadow:0 6px 18px #0003}.hero .cta .w:hover{background:#fff;transform:translateY(-2px)}.hero .cta .g{background:#ffffff30;color:#fff;box-shadow:none}.hero .cta .g:hover{background:#ffffff48}
+.hero .fl{position:absolute;right:34px;top:34px;font-size:64px;filter:drop-shadow(0 8px 14px #0004);animation:fl 4s ease-in-out infinite}@keyframes fl{50%{transform:translateY(-9px) rotate(4deg)}}
+.home h3{margin:28px 0 12px;font-size:12.5px;text-transform:uppercase;letter-spacing:1.3px;color:var(--mu)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px;cursor:pointer;text-align:left;transition:.18s;box-shadow:0 4px 14px #1d21360d;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;width:100%}
+.card:hover{transform:translateY(-4px);box-shadow:0 16px 34px #4f46e531;border-color:#c7caf3;background:#fff}
+.card .ic{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:11px}
+.card b{display:block;font-size:15px;margin-bottom:3px}.card span{font-size:12.5px;color:var(--mu);line-height:1.4;display:block}
+.c1 .ic{background:#e0e7ff}.c2 .ic{background:#fce7f3}.c3 .ic{background:#cffafe}.c4 .ic{background:#dcfce7}
+.tags{display:flex;flex-wrap:wrap;gap:9px}.tags .tg{padding:8px 14px;border-radius:99px;background:var(--card);border:1px solid var(--bd);font-size:12.8px;cursor:pointer;transition:.15s;box-shadow:0 2px 6px #1d21360a}.tags .tg:hover{background:var(--soft);border-color:var(--ac);color:var(--ac);transform:translateY(-1px)}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 22px;background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px 22px;font-size:13px;color:#3b4157}.feat div:before{content:"✓";display:inline-block;width:19px;height:19px;border-radius:50%;background:#dcfce7;color:#16a34a;text-align:center;line-height:19px;font-size:11px;font-weight:800;margin-right:9px}
+.home .tip{margin-top:20px;text-align:center;font-size:12.5px;color:var(--mu)}.home kbd{background:#fff;border:1px solid var(--bd);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font:11.5px ui-monospace,monospace}
+@media(max-width:1100px){#chat{width:300px}.hero .fl{display:none}}
+#coverDlg{position:fixed;inset:0;background:#101426b8;display:none;align-items:center;justify-content:center;z-index:65;padding:12px}#coverDlg.open{display:flex}#coverDlg>section{width:min(1100px,100%);max-height:96vh;overflow:auto;background:#fff;border-radius:16px;padding:18px;box-shadow:0 24px 70px #0006}#coverDlg h2{margin:0 0 4px}#coverDlg p{margin:4px 0 12px;color:var(--mu);font-size:13px}.coverGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.8fr);gap:15px}.coverFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.coverFields label{font-size:12px;color:var(--mu);display:flex;flex-direction:column;gap:3px}#coverText{width:100%;min-height:360px;padding:8px;border:1px solid var(--bd);border-radius:8px;font:inherit;color:var(--tx);resize:vertical}.coverFields .wide{grid-column:1/-1}.coverPreview{background:#f3f4f8;min-height:420px;display:grid;place-items:center;overflow:auto;border-radius:10px}.coverPreview canvas{max-width:100%;max-height:70vh;box-shadow:0 2px 12px #0002;background:white}.coverActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}.coverActions #coverStatus{flex:1;min-width:200px;color:var(--mu);font-size:12px}@media(max-width:760px){#coverDlg>section{padding:13px}.coverGrid{grid-template-columns:1fr}.coverPreview{min-height:300px}.coverFields{grid-template-columns:1fr 1fr}}
+#boxBar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:white;border:1px solid var(--bd);border-radius:14px;padding:10px;display:flex;align-items:center;gap:8px;z-index:50;max-width:96vw}#boxBar textarea{width:130px;height:34px}#boxBar input[type=number]{width:68px}#boxBar input[type=range]{width:96px}#boxBar label{display:inline-flex;align-items:center;gap:4px;font-size:12px}.txtbox{position:absolute;z-index:21;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center;white-space:pre-wrap;word-break:break-word;padding:0;box-sizing:border-box;cursor:move;user-select:none}.txtbox .boxHandle{position:absolute;z-index:5;width:5px;height:5px;min-width:5px;min-height:5px;padding:0;border:1px solid #334155;border-radius:50%;background:#fff;box-shadow:0 0 0 1px #fff;touch-action:none}.txtbox .boxHandle::before{content:"";position:absolute;inset:-5px}.txtbox .boxEditor{position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;padding:0;border:0;outline:1px dashed #64748b;resize:none;background:transparent;color:inherit;font:inherit;line-height:1.15;text-align:left;white-space:pre-wrap;overflow:hidden;overflow-wrap:anywhere;word-break:break-word;user-select:text;z-index:2;caret-color:currentColor}.boxHandle.nw{left:0;top:0;cursor:nwse-resize}.boxHandle.n{left:50%;top:0;transform:translateX(-50%);cursor:ns-resize}.boxHandle.ne{right:0;top:0;cursor:nesw-resize}.boxHandle.e{right:0;top:50%;transform:translateY(-50%);cursor:ew-resize}.boxHandle.se{right:0;bottom:0;cursor:nwse-resize}.boxHandle.s{left:50%;bottom:0;transform:translateX(-50%);cursor:ns-resize}.boxHandle.sw{left:0;bottom:0;cursor:nesw-resize}.boxHandle.w{left:0;top:50%;transform:translateY(-50%);cursor:ew-resize}#boxBar{flex-wrap:wrap}#boxBar.moveOnly select,#boxBar.moveOnly label,#boxBar.moveOnly input,#boxBar.moveOnly span,#boxBar.moveOnly #copyBoxText,#boxBar.moveOnly #pasteBoxText{display:none}.moveOnly .boxHandle{display:none}#boxHex,#textHex{font:11px ui-monospace,monospace;min-width:50px;color:#444}#docDlg{position:fixed;inset:0;background:#101426a8;backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:30}
+#docDlg>div{background:#fff;padding:22px 24px;border-radius:18px;box-shadow:0 24px 70px #0006;animation:pop .2s ease;width:500px;max-width:94vw;max-height:92vh;overflow:auto}
+#docDlg h3{margin:0 0 4px;font-size:19px;background:linear-gradient(90deg,var(--ac),#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+#docDlg label{display:block;margin:12px 0 5px;font-weight:600;font-size:12.5px;color:var(--mu)}#docDlg select,#docDlg input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:9px;font:inherit}
+#docDlg input[type=file]{width:100%;padding:9px;border:1.5px dashed #c3c7ea;border-radius:11px;background:var(--soft);font-size:13px}
+#docDlg .row{display:flex;gap:10px}#docDlg .row>div{flex:1}
+#docDlg label.chk{display:flex;align-items:flex-start;gap:8px;color:var(--tx);font-weight:500;background:linear-gradient(135deg,#eef2ff,#fdf2f8);border-radius:11px;padding:9px 11px;margin:8px 0 0}
+#docDlg .note{font-size:12px;color:var(--mu);margin:8px 0 0}.c5 .ic{background:#fef3c7}
+</style></head><body>
+<div id="bar">
+ <span class="brand">✨ AI PDF Editor</span>
+ <button class="p" id="bOpen">📂 Open PDF</button><button id="bCover" class="ai" title="Analyze a page photo and reconstruct it as a searchable PDF">Photo to PDF</button><button id="bNew">New</button><button id="bTpl">Template + Results</button><button id="bDoc" title="Convert a Word (.docx) file to PDF. Order is kept; text and images are resized so every page is filled">Word → PDF</button><button id="bShot" class="ai" title="AI reads your output screenshot(s) and writes the report in the lab manual format">Screenshot → Report (AI)</button><span class="sep"></span>
+ <button id="bUndo">Undo</button><button id="bRedo">Redo</button><button id="bFind" title="Find or replace text in this PDF (Ctrl+f)">Find / Replace</button><button id="bDocQ" title="Pick a Word (.docx) file and get an exact PDF copy: same page size, margins and picture sizes, no resizing">Doc → PDF</button><span class="sep"></span>
+ <button id="bZi">＋</button><button id="bZo">－</button><span class="sep"></span>
+ <button id="bTxt">Add text</button><button id="bBox">Cover + text</button><button id="bImg">Add image</button><button id="bSnip" class="p" title="Click an image, then cut it (the content below and the next page move up) or copy it, and place it anywhere on any page.">Cut / copy image</button><button id="bPg">Add page</button><span class="sep"></span>
+ <button id="bEr" title="Erase selected text/region (Delete key)">Erase selection</button><label title="After erasing, move the content below up"><input type="checkbox" id="gap" checked> close gap</label> <input type="color" id="cPick" value="#2f5bea" title="Colour of selected text"> <button id="nL" title="Move selection (arrow keys)">←</button><button id="nU">↑</button><button id="nD">↓</button><button id="nR">→</button><span class="sp"></span><button id="bFl" title="Permanently removes erased text; result is not editable">Download flattened (secure)</button> <button class="p" id="bDl">Download PDF</button>
+ <input type="file" id="fDocQ" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden><input type="file" id="fOpen" accept="application/pdf" hidden><input type="file" id="fImg" accept="image/png,image/jpeg" hidden>
+ <div id="findBar" role="search" aria-label="Find and replace text"><input id="findText" type="search" placeholder="Find in document" aria-label="Find text"><span id="findCount" aria-live="polite">0 matches</span><button type="button" id="findPrev" title="Previous match">&#8593;</button><button type="button" id="findNext" title="Next match">&#8595;</button><input id="replaceText" type="text" placeholder="Replace with" aria-label="Replace with"><button type="button" id="replaceOne">Replace</button><button type="button" id="replaceEvery">Replace all</button><button type="button" id="findClose" aria-label="Close find and replace">&#215;</button></div>
+</div>
+<div id="main"><div id="thumbs"></div><div id="pages"><div class="home" id="home"></div></div>
+ <div id="chat"><div id="chatHead"><i></i>AI Assistant<small>generate · edit · reports</small></div><div id="log"></div><div id="ctx">No selection</div>
+  <div style="padding:0 10px"><select id="mode"><option value="gen">Generate new PDF</option><option value="edit">Edit current PDF</option></select></div>
+  <div id="in"><textarea id="msg" placeholder="Tell me what you want, like making a resume, or changing something in your PDF..."></textarea><button class="p" id="bSend">Send</button></div></div></div>
+<div id="coverDlg"><section><h2>Photo to PDF reconstruction</h2><p>AI analyzes the page and OCR adds searchable text. The PDF keeps your original photo as the page, preserving its exact layout, handwriting and graphics.</p><div class="coverActions"><input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><button type="button" id="coverExtract" class="p">Analyze photo</button><span id="coverStatus" role="status">Choose one JPG, PNG or WEBP page photo. Maximum file size: 12 MB.</span></div><div class="coverGrid"><div><label for="coverText">AI analysis and recognized text</label><textarea id="coverText" rows="14" readonly placeholder="Analysis will appear here after you choose a photo."></textarea></div><div class="coverPreview"><canvas id="coverCanvas" hidden></canvas><span id="coverEmpty">The reconstructed PDF preview will appear here.</span></div></div><div class="coverActions"><button type="button" id="coverGenerate" class="p" disabled>Reconstruct PDF</button><button type="button" id="coverDownload" disabled>Download PDF</button><button type="button" id="coverClose">Close</button></div></section></div>
+<div id="dlg"><div><h3>Template + Results</h3>
+ <label>PDF 1: required format</label><input type="file" id="t1" accept="application/pdf">
+ <label>PDF 2: experiment output / results</label><input type="file" id="t2" accept="application/pdf">
+ <label>Starting page no. (empty = keep "Write Page No")</label><input type="number" id="tPn" min="1" value="1" style="width:100%;padding:5px">
+ <p style="text-align:right"><button id="tX">Cancel</button> <button class="p" id="tGo">Create report</button></p></div></div>
+<div id="docDlg"><div><h3>Word → PDF</h3>
+ <p class="note" style="margin-top:2px">Converts a Word document into a PDF. Text, lists, tables and pictures stay in the original order. Everything is resized so it fits the page and no blank gaps are left.</p>
+ <label>Word file (.docx)</label><input type="file" id="docFile" accept=".docx,.txt,.md,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
+ <div class="row"><div><label>Paper</label><select id="docPaper"><option value="A4">A4</option><option value="Letter">Letter</option></select></div><div><label>Font</label><select id="docFont"><option value="Helvetica">Sans-serif (Helvetica)</option><option value="Times">Serif (Times)</option></select></div></div>
+ <div class="row"><div><label>Base text size (pt)</label><input type="number" id="docSize" min="7" max="16" step="0.5" value="11"></div><div><label>Margins</label><select id="docMargin"><option value="36">Narrow</option><option value="48" selected>Normal</option><option value="64">Wide</option></select></div></div>
+ <label class="chk"><input type="checkbox" id="docExact" checked><span><b>Exact copy of the Word file</b>: same page size, margins and picture sizes as in Word (full-width pictures all get the same width), pages break where Word breaks them, nothing is resized. The options below are ignored while this is ticked; untick it for the old re-flow / fit &amp; fill mode.</span></label>
+ <label class="chk"><input type="checkbox" id="docFill" checked><span><b>Fit &amp; fill pages</b>: resize text and images together so every page is full (no blank space between content or at the page bottom). Untick for a plain 1:1 flow.</span></label>
+ <label class="chk"><input type="checkbox" id="docJust" checked><span>Justify paragraphs (straight left and right edges)</span></label>
+ <label class="chk"><input type="checkbox" id="docNum" checked><span>Add page numbers</span></label>
+ <p class="note">Runs in your browser, no AI key needed. Legacy .doc files: save as .docx first. Text uses standard PDF fonts, so characters outside Latin letters may show as ?.</p>
+ <p style="text-align:right"><button id="docX">Cancel</button> <button class="p" id="docGo">Convert to PDF</button></p></div></div>
+<div id="dlg2"><div><h3>Screenshot → Report (AI)</h3>
+ <label>PDF 1: lab manual format (required)</label><input type="file" id="s1" accept="application/pdf">
+ <label>Screenshots of your output (required, up to 10). They go into the PDF in the order listed below</label><input type="file" id="s2" accept="image/png,image/jpeg,image/webp" multiple>
+ <label class="chk"><input type="checkbox" id="sAuto" checked><span>Let AI arrange the screenshots in a logical order (code top to bottom, then outputs). Untick to keep exactly the order below.</span></label>
+ <div id="sList"></div><p style="margin:4px 0;font-size:12px"><button type="button" id="sAZ">Sort A-Z</button> <button type="button" id="sTm">Sort by time</button> <span style="color:#666">Use ↑ ↓ to arrange. Pick files again to add more.</span></p>
+ <p style="font-size:12px;color:#666;margin:6px 0">Screenshots are placed one under another at full page width, never cropped, filling each page.</p><select id="sSize" style="display:none"><option value="1" selected>1</option></select>
+ <label>PDF 2: sample report (optional)</label><input type="file" id="s3" accept="application/pdf">
+ <p style="font-size:12px;color:#666;margin:4px 0 0">If you add PDF 2, the AI copies its section names and writing style, and its college logo header is reused.</p>
+ <label>Starting page no. (empty = keep "Write Page No")</label><input type="number" id="sPn" min="1" value="1" style="width:100%;padding:5px">
+ <p style="text-align:right"><button id="sX">Cancel</button> <button class="p" id="sGo">Analyse screenshots</button></p></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="vendor/mammoth.browser.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/fontkit.umd.min.js"></script>
+<script src="docx2pdf.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const {PDFDocument,StandardFonts,rgb,pushGraphicsState,popGraphicsState,concatTransformationMatrix,degrees}=PDFLib;const $=s=>document.querySelector(s);
+const LIM={items:350,ref:3000}; // keep requests small enough for free-plan limits (8K tokens/min); raise on paid plans
+let raw=[],dead={},bytes=null,hist=[],fut=[],zoom=1.3,items=[],pages=[],sel=new Set(),region=null,pdfDoc=null,active=0,pending=null,placing=null,placingDrag=false,boxDefaults={color:'#000000',tc:'#ffffff'},boxClipboard=null,lastBox=null,zoomAnchor=null;
+
+/* ---------- helpers ---------- */
+const say=(t,c='a')=>{const d=document.createElement('div');d.className='m '+c;d.textContent=t;$('#log').append(d);$('#log').scrollTop=1e9;return d};
+const hex=h=>{h=(h||'#000000').replace('#','');if(h.length==3)h=[...h].map(x=>x+x).join('');const n=parseInt(h,16)||0;return rgb((n>>16&255)/255,(n>>8&255)/255,(n&255)/255)};
+const kk=(p,s,x,y)=>p+'|'+s+'|'+x.toFixed(1)+'|'+y.toFixed(1);
+const GREEK={'Δ':'delta','δ':'delta','η':'eta','θ':'theta','α':'alpha','β':'beta','γ':'gamma','λ':'lambda','μ':'mu','π':'pi','σ':'sigma','Σ':'sum','∑':'sum','ω':'w','→':'->','←':'<-','≥':'>=','≤':'<=','≠':'!=','∙':'*','√':'sqrt','∞':'inf'};
+const clean=t=>String(t).replace(/[\u2010-\u2015\u2212]/g,'-').replace(/[\u2000-\u200B\u202F\u00A0]/g,' ').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-').replace(/…/g,'...').replace(/•/g,'-').replace(/[Δδηθαβγλμπσ∑Σω→←≥≤≠∙√∞]/g,c=>GREEK[c]||'?').replace(/[^\x20-\x7E\xA0-\xFF]/g,'?');
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const keepCase=(m,r)=>m.length>1&&m===m.toUpperCase()&&m!==m.toLowerCase()?r.toUpperCase():(m[0]===m[0].toUpperCase()&&m[0]!==m[0].toLowerCase()?r.charAt(0).toUpperCase()+r.slice(1):r);
+const REPL_RX=/^\s*(?:please\s+)?(?:replace|substitute)\s+["“'‘]?(.+?)["”'’]?\s+(?:with|by|to)\s+["“'‘]?(.+?)["”'’]?\s*(?:everywhere|in (?:the )?(?:whole |entire )?(?:document|pdf|file))?\s*[.!]?\s*$/i;
+async function ai(system,prompt,images,temperature){const r=await fetch('/api/ai',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({system,prompt,images,temperature})});const j=await r.json();if(!r.ok)throw new Error(j.error);const t=j.text||'',a=t.indexOf('{');if(a<0)throw new Error('AI returned no JSON');
+ let o;try{o=parseJ(t.slice(a,t.lastIndexOf('}')+1))}catch{o=parseJ(t.slice(a),true)} // 2nd try repairs a reply that was cut off
+ if(j.finish==='length')Object.defineProperty(o,'_cut',{value:true});return o}
+function closeJ(o){let st=[],q=false,e=false;for(const c of o){if(q){if(e)e=false;else if(c=='\\')e=true;else if(c=='"')q=false}else if(c=='"')q=true;else if(c=='{'||c=='[')st.push(c);else if(c=='}'||c==']')st.pop()}
+ return o+(q?'"':'')+st.reverse().map(c=>c=='{'?'}':']').join('')}
+function parseJ(t,trunc){try{return JSON.parse(t)}catch{} // repair: raw line breaks / tabs inside strings, trailing commas
+ let o='',q=false,e=false;for(const c of t){if(q){if(e){e=false;o+=c}else if(c=='\\'){e=true;o+=c}else if(c=='"'){q=false;o+=c}else if(c=='\n')o+='\\n';else if(c=='\r')o+='';else if(c=='\t')o+='\\t';else o+=c}else{if(c=='"')q=true;o+=c}}
+ o=o.replace(/,\s*([}\]])/g,'$1');try{return JSON.parse(o)}catch(err){if(!trunc)throw err}
+ for(let k=0;k<60&&o.length>1;k++){const c=closeJ(o.replace(/[,:]\s*$/,'')).replace(/,\s*([}\]])/g,'$1');try{return JSON.parse(c)}catch{}o=o.slice(0,Math.max(o.lastIndexOf(','),o.lastIndexOf('{'),o.lastIndexOf('[')))} // cut back to the last complete item
+ throw new Error('AI returned broken JSON')}
+const readBytes=async f=>new Uint8Array(await f.arrayBuffer());
+
+/* ---------- load / extract / render ---------- */
+async function load(b,push=true,d=dead){lastBox=null;const pagesBox=$('#pages'),pageEl=$('#pg'+active),keepView=bytes&&pageEl?{p:active,top:pageEl.getBoundingClientRect().top-pagesBox.getBoundingClientRect().top}:null;if(push&&bytes){hist.push({bytes,dead});fut=[]}bytes=b;dead=d;const cnt={...dead};sel.clear();region=null;
+ pdfDoc=await pdfjsLib.getDocument({data:b.slice()}).promise;items=[];raw=[];pages=[];
+ for(let p=0;p<pdfDoc.numPages;p++){const pg=await pdfDoc.getPage(p+1),v=pg.getViewport({scale:1});pages.push({w:v.width,h:v.height,view:v});
+  const tc=await pg.getTextContent();tc.items.forEach((it,i)=>{if(!it.str.trim())return;const kx=kk(p,it.str,it.transform[4],it.transform[5]);const st=tc.styles[it.fontName]||{},ff=st.fontFamily||'';
+   const h=Math.hypot(it.transform[2],it.transform[3])||it.height||10;
+   const o={id:p+'-'+i,p,fn:it.fontName,str:it.str,x:it.transform[4],y:it.transform[5],w:it.width,h,font:/mono|courier/i.test(ff)?'c':/serif/i.test(ff)&&!/sans/i.test(ff)?'t':'h'};raw.push(o);if(cnt[kx]>0){cnt[kx]--;return}items.push(o)})}
+ await render();if(keepView&&pages.length){const p=Math.min(keepView.p,pages.length-1),target=$('#pg'+p);active=p;if(target)pagesBox.scrollTop+=target.getBoundingClientRect().top-pagesBox.getBoundingClientRect().top-keepView.top}}
+function boxPdfRect(p,st){const pg=pages[p],v=pg.view,pts=[[st.x,pg.h-st.y],[st.x+st.w,pg.h-st.y],[st.x,pg.h-st.y+st.h],[st.x+st.w,pg.h-st.y+st.h]].map(([x,y])=>v.convertToPdfPoint(x,y)),xs=pts.map(q=>q[0]),ys=pts.map(q=>q[1]);return{x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)}}
+async function render(){const box=$('#pages'),th=$('#thumbs');if(!box.onmousemove)box.onmousemove=e=>{const el=e.target.closest('.pg');if(!el)return;const r=el.getBoundingClientRect(),cr=box.getBoundingClientRect();zoomAnchor={p:+el.id.slice(2),fx:(e.clientX-r.left)/r.width,fy:(e.clientY-r.top)/r.height,sx:e.clientX-cr.left,sy:e.clientY-cr.top}};box.innerHTML='';th.innerHTML='';th.style.display='';
+ for(let p=0;p<pages.length;p++){const pg=await pdfDoc.getPage(p+1);
+  const div=document.createElement('div');div.className='pg';div.id='pg'+p;div.onmouseenter=()=>{active=p;document.querySelectorAll('.th').forEach((t,i)=>t.classList.toggle('a',i==p))};
+  const v=pg.getViewport({scale:zoom}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;div.append(c);
+  await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise;
+  const ov=document.createElement('div');ov.className='ov';div.append(ov);box.append(div);
+  items.filter(i=>i.p==p).forEach(it=>{const e=document.createElement('div');e.className='it'+(sel.has(it.id)?' s':'');
+   Object.assign(e.style,{left:it.x*zoom+'px',top:(pages[p].h-it.y-it.h*.9)*zoom+'px',width:it.w*zoom+'px',height:it.h*1.15*zoom+'px'});
+   e.onmousedown=ev=>{if(placing)return;ev.stopPropagation();if(!ev.shiftKey)sel.clear();sel.has(it.id)?sel.delete(it.id):sel.add(it.id);region=null;paint()};
+   e.ondblclick=()=>{const t=prompt('Edit text:',it.str);if(t!==null)run([{op:'replaceText',id:it.id,text:t}])};ov.append(e)});
+  ov.onmousedown=ev=>{const r=ov.getBoundingClientRect();
+   if(placing){const f=placing;if(placingDrag){placing=null;placingDrag=false;document.body.style.cursor='';const x0=ev.clientX-r.left,y0=ev.clientY-r.top,g=document.createElement('div');g.className='rg';ov.append(g);const mv=e=>{const x=e.clientX-r.left,y=e.clientY-r.top;Object.assign(g.style,{left:Math.min(x,x0)+'px',top:Math.min(y,y0)+'px',width:Math.abs(x-x0)+'px',height:Math.abs(y-y0)+'px'})};const up=e=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);const x1=e.clientX-r.left,y1=e.clientY-r.top;g.remove();const left=Math.min(x0,x1)*pages[p].w/r.width,top=pages[p].h-Math.min(y0,y1)*pages[p].h/r.height,w=Math.max(2,Math.abs(x1-x0)*pages[p].w/r.width),h=Math.max(2,Math.abs(y1-y0)*pages[p].h/r.height);f(p,left,top,w,h)};document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);return}const x=(ev.clientX-r.left)*pages[p].w/r.width,y=pages[p].h-(ev.clientY-r.top)*pages[p].h/r.height;placing=null;document.body.style.cursor='';f(p,x,y);return}   const x0=ev.clientX-r.left,y0=ev.clientY-r.top;sel.clear();const g=document.createElement('div');g.className='rg';ov.append(g);
+   const mv=e=>{const x=e.clientX-r.left,y=e.clientY-r.top;Object.assign(g.style,{left:Math.min(x,x0)+'px',top:Math.min(y,y0)+'px',width:Math.abs(x-x0)+'px',height:Math.abs(y-y0)+'px'})};
+   const up=e=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);const x=e.clientX-r.left,y=e.clientY-r.top;
+    if(Math.abs(x-x0)<5&&Math.abs(y-y0)<5){region=null;paint();return}
+    region={p,x:Math.min(x,x0)/zoom,y:pages[p].h-Math.max(y,y0)/zoom,w:Math.abs(x-x0)/zoom,h:Math.abs(y-y0)/zoom};
+    items.filter(i=>i.p==p&&i.x<region.x+region.w&&i.x+i.w>region.x&&i.y<region.y+region.h&&i.y+i.h>region.y).forEach(i=>sel.add(i.id));paint()};
+   document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up)};
+  const t=document.createElement('div');t.className='th'+(p==active?' a':'');const tv=pg.getViewport({scale:.25}),tc=document.createElement('canvas');tc.width=tv.width;tc.height=tv.height;
+  pg.render({canvasContext:tc.getContext('2d'),viewport:tv});tc.onclick=()=>div.scrollIntoView({behavior:'smooth'});t.append(tc);
+  const mk=(l,f)=>{const b=document.createElement('button');b.textContent=l;b.onclick=f;t.append(b)};
+  mk('↑',()=>pageOp('move',p,p-1));mk('↓',()=>pageOp('move',p,p+1));mk('✕',()=>pageOp('del',p));th.append(t)}
+ paint();if(region){const ov=document.querySelectorAll('.ov')[region.p],g=document.createElement('div');g.className='rg';
+  Object.assign(g.style,{left:region.x*zoom+'px',top:(pages[region.p].h-region.y-region.h)*zoom+'px',width:region.w*zoom+'px',height:region.h*zoom+'px'});ov?.append(g)}}
+function paint(){document.querySelectorAll('.ov').forEach((ov,p)=>{const its=items.filter(i=>i.p==p);ov.querySelectorAll('.it').forEach((e,k)=>e.classList.toggle('s',sel.has(its[k]?.id)))});
+ $('#ctx').textContent=sel.size?`Selected: ${sel.size} text element(s)${region?' + region':''}`:region?'Region selected':'No selection'}
+
+/* ---------- Find & Replace: keep the original font style, size and colour ---------- */
+const SFONT={h:'Helvetica',hb:'HelveticaBold',hi:'HelveticaOblique',hbi:'HelveticaBoldOblique',t:'TimesRoman',tb:'TimesRomanBold',ti:'TimesRomanItalic',tbi:'TimesRomanBoldItalic',c:'Courier',cb:'CourierBold',ci:'CourierOblique',cbi:'CourierBoldOblique'};
+// picks the closest standard font (family + bold + italic) for a text item
+async function fontKeyOf(i,ready){let base=i.font||'h',name='',bold=false,italic=false;
+ try{const page=await pdfDoc.getPage(i.p+1);if(i.fn){if(!ready[i.p])ready[i.p]=page.getOperatorList().catch(()=>0);await ready[i.p];
+   if(page.commonObjs.has(i.fn)){const f=page.commonObjs.get(i.fn)||{};name=String(f.name||'');bold=!!(f.bold||f.black);italic=!!f.italic;if(f.isMonospace)base='c';else if(f.isSerifFont&&base=='h')base='t'}}}catch(e){}
+ if(/bold|black|heavy|demi/i.test(name))bold=true;if(/italic|oblique/i.test(name))italic=true;
+ if(/courier|mono|consolas/i.test(name))base='c';else if(/times|georgia|garamond|palatino|cambria|serif|roman/i.test(name)&&!/sans/i.test(name))base='t';else if(/arial|helvet|calibri|verdana|tahoma|sans/i.test(name))base='h';
+ return base+(bold?'b':'')+(italic?'i':'')}
+// renders just this text item from the open PDF and reads its text colour and its background colour
+async function colorsOf(i){try{const pg=pages[i.p],page=await pdfDoc.getPage(i.p+1),L=Math.max(0,i.x-.5),R=Math.min(pg.w,i.x+i.w+.5),B=Math.max(0,i.y-i.h*.2-.5),T=Math.min(pg.h,i.y+i.h*.8+.5);if(R<=L||T<=B)return{};
+ const sc=Math.max(2,Math.min(10,3000/Math.max(1,R-L))),v=page.getViewport({scale:sc,offsetX:-L*sc,offsetY:-(pg.h-T)*sc}),c=document.createElement('canvas');c.width=Math.max(1,Math.ceil((R-L)*sc));c.height=Math.max(1,Math.ceil((T-B)*sc));
+ const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+ try{await page.render({canvasContext:ctx,viewport:v}).promise;const d=ctx.getImageData(0,0,c.width,c.height).data,hist=new Map(),edge=new Map();
+  for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){const k=(y*c.width+x)*4,key=(d[k]<<16)|(d[k+1]<<8)|d[k+2];hist.set(key,(hist.get(key)||0)+1);if(x===0||y===0||x===c.width-1||y===c.height-1)edge.set(key,(edge.get(key)||0)+1)}
+  let bg=0,bgN=0;for(const [k,n] of edge)if(n>bgN){bg=k;bgN=n}
+  const dist=k=>{const a=(k>>16)-(bg>>16&255),b=(k>>8&255)-(bg>>8&255),e=(k&255)-(bg&255);return a*a+b*b+e*e};
+  let maxD=0;for(const k of hist.keys())maxD=Math.max(maxD,dist(k));
+  let best=-1,bestN=0;if(maxD>0)for(const [k,n] of hist){if(k!==bg&&dist(k)>=maxD*.9&&n>bestN){best=k;bestN=n}}
+  const hx=k=>'#'+[k>>16&255,k>>8&255,k&255].map(q=>q.toString(16).padStart(2,'0')).join('');
+  return{fg:best>=0?hx(best):undefined,bg:(bg>>16&255)>245&&(bg>>8&255)>245&&(bg&255)>245?undefined:hx(bg)}}finally{c.width=0;c.height=0}}catch(e){return{}}}
+
+/* ---------- editing engine (pdf-lib) ---------- */
+async function run(ops,label){if(!bytes)return;const doc=await PDFDocument.load(bytes),pgs=doc.getPages(),F={},ready={};
+ const font=async k=>F[k]||(F[k]=await doc.embedFont(StandardFonts[SFONT[k]||'Helvetica']));
+ const by=Object.fromEntries(items.map(i=>[i.id,i])),cover=(i,dx=0,dy=0)=>pgs[i.p].drawRectangle({x:i.x-1,y:i.y-i.h*.25,width:i.w+2,height:i.h*1.25,color:rgb(1,1,1)}),
+  styleOf=async i=>({font:await fontKeyOf(i,ready),...await colorsOf(i)}),
+  coverBg=(i,bg)=>pgs[i.p].drawRectangle({x:i.x-1,y:i.y-i.h*.25,width:i.w+2+i.h*.12,height:i.h*1.25,color:bg?hex(bg):rgb(1,1,1)});
+ const put=async(p,x,y,size,text,font_,color)=>pgs[p].drawText(clean(text),{x,y,size,font:await font(font_||'h'),color:hex(color)});
+ const nd={...dead},killed=new Set(),kill=i=>{if(killed.has(i.id))return;killed.add(i.id);const k=kk(i.p,i.str,i.x,i.y);nd[k]=(nd[k]||0)+1};
+ let n=0;
+ const eraseOp=async o=>{
+  const R=new Set((o.ids||[]).map(id=>by[id]).filter(Boolean)),reg=o.region;
+  if(reg)items.forEach(i=>{if(i.p==reg.p&&i.x<reg.x+reg.w&&i.x+i.w>reg.x&&i.y<reg.y+reg.h&&i.y+i.h>reg.y)R.add(i)});
+  const pp=new Set([...R].map(i=>i.p));if(reg)pp.add(reg.p);
+  for(const p of pp){
+   const S=[...R].filter(i=>i.p==p),pg=pgs[p],W=pages[p].w;
+   if(reg&&reg.p==p)pg.drawRectangle({x:reg.x,y:reg.y,width:reg.w,height:reg.h,color:rgb(1,1,1)});
+   S.forEach(i=>{cover(i);kill(i)});n+=S.length||1;
+   if(!o.closeGap||!S.length)continue;
+   const rest=items.filter(i=>i.p==p&&!R.has(i)),yHi=Math.max(...S.map(i=>i.y)),low=S.reduce((a,b)=>b.y<a.y?b:a),yLo=low.y,hh=low.h;
+   const bl=Math.min(...S.map(i=>i.x)),br=Math.max(...S.map(i=>i.x+i.w)),gapx=i=>Math.max(i.x-br,bl-(i.x+i.w),0);
+   if(rest.some(i=>S.some(s=>Math.abs(i.y-s.y)<.6*s.h)&&gapx(i)<2.5*hh))continue; // part of a line was erased: nothing to close
+   let left=0,right=W;rest.filter(i=>i.y<yHi+hh&&i.y>yLo-hh&&gapx(i)>=2.5*hh).forEach(i=>{if(i.x+i.w<=bl)left=Math.max(left,i.x+i.w+1);else if(i.x>=br)right=Math.min(right,i.x-1)});
+   const below=rest.filter(i=>i.y<yLo-.5*hh&&i.x>=left-1&&i.x+i.w<=right+1);if(!below.length)continue;
+   const dy=yHi-below.reduce((a,b)=>b.y>a.y?b:a).y;if(dy<=.5)continue;
+   const yB=yLo-.3*hh,[cp]=await doc.copyPages(doc,[p]),emb=await doc.embedPage(cp,{left,bottom:0,right,top:yB}); // embed a COPY: embedding the page itself makes a self-referencing form
+   pg.drawRectangle({x:left,y:0,width:right-left,height:yB,color:rgb(1,1,1)});pg.drawPage(emb,{x:left,y:dy});const bs=new Set(below);below.forEach(kill);raw.forEach(r=>{if(r.p==p&&!bs.has(r)){const k=kk(p,r.str,r.x,r.y+dy);nd[k]=(nd[k]||0)+1}})}};
+ for(const o of ops){try{
+  if(o.op=='erase'){await eraseOp(o)}
+  else 
+  if(o.op=='replaceText'&&by[o.id]){const i=by[o.id],st=await styleOf(i);coverBg(i,st.bg);kill(i);await put(i.p,i.x,i.y,i.h,o.text,st.font,o.color||st.fg);n++}
+  else if(o.op=='replaceAll'&&o.find){const re=new RegExp(esc(o.find),'gi');for(const i of items){if(o.scope=='selection'&&!sel.has(i.id))continue;const t=i.str.replace(re,m=>keepCase(m,o.replace||''));if(t===i.str)continue;const st=await styleOf(i);coverBg(i,st.bg);kill(i);await put(i.p,i.x,i.y,i.h,t,st.font,o.color||st.fg);n++}}
+  else if(o.op=='delete'){for(const id of o.ids||[])if(by[id]){cover(by[id]);kill(by[id]);n++}}
+  else if(o.op=='setColor'){for(const id of o.ids||[])if(by[id]){const i=by[id];cover(i);kill(i);await put(i.p,i.x,i.y,i.h,i.str,i.font,o.color);n++}}
+  else if(o.op=='move'){for(const id of o.ids||[])if(by[id]){const i=by[id];cover(i);kill(i);await put(i.p,i.x+(o.dx||0),i.y+(o.dy||0),i.h,i.str,i.font,o.color);n++}}
+  else if(o.op=='addText'){await put(o.page??active,o.x,o.y,o.size||11,o.text,o.font,o.color);n++}
+  else if(o.op=='eraseRegion'){pgs[o.page].drawRectangle({x:o.x,y:o.y,width:o.w,height:o.h,color:rgb(1,1,1)});items.filter(i=>i.p==o.page&&i.x<o.x+o.w&&i.x+i.w>o.x&&i.y<o.y+o.h&&i.y+i.h>o.y).forEach(kill);n++}
+ }catch(e){console.warn('op failed',o,e)}}
+ if(n){await load(new Uint8Array(await doc.save()),true,nd);if(label)say(label+` (${n} change${n>1?'s':''}). Undo with Ctrl+Z.`)}else say('No changes could be applied.','e')}
+async function pageOp(k,i,j){const doc=await PDFDocument.load(bytes);let f;
+ if(k=='del'){if(doc.getPageCount()<2)return;doc.removePage(i);f=p=>p==i?null:p>i?p-1:p}
+ else if(k=='add'){doc.insertPage(i+1,pages[i]?[pages[i].w,pages[i].h]:[595,842]);f=p=>p>i?p+1:p}
+ else{if(j<0||j>=doc.getPageCount())return;const[pg]=await doc.copyPages(doc,[i]);doc.removePage(i);doc.insertPage(j,pg);f=p=>p==i?j:i<j?(p>i&&p<=j?p-1:p):(p>=j&&p<i?p+1:p)}
+ const o={};for(const key in dead){const[p,...r]=key.split('|'),q=f(+p);if(q!=null)o[q+'|'+r.join('|')]=dead[key]}
+ await load(new Uint8Array(await doc.save()),true,o)}
+
+/* ---------- AI: generate (document model -> PDF) ---------- */
+const GEN=`You design documents. Reply with ONLY JSON: {"accent":"#hex","blocks":[...],"missing":["..."]}.
+Block types: {"t":"h1","text"} {"t":"h2","text"} {"t":"p","text","align":"left|center"} {"t":"bullet","text"} {"t":"row","left","right"} (bold left + right-aligned right, e.g. job title & dates) {"t":"table","rows":[[...],...]} (first row = header) {"t":"hr"} {"t":"spacer"}.
+Make it professional and complete for the requested document type (resume, report, invoice, cover letter, experiment report...). Plain ASCII text. Never invent personal facts, real numbers or results: use clearly marked placeholders like [Your Name] where data is unknown. List placeholders/unknowns in "missing".`;
+async function buildPdf(m){const doc=await PDFDocument.create(),R=await doc.embedFont(StandardFonts.Helvetica),B=await doc.embedFont(StandardFonts.HelveticaBold);
+ const W=595,H=842,M=50,acc=hex(m.accent||'#1f3b73'),ink=rgb(.1,.1,.12);let pg=doc.addPage([W,H]),y=H-M;
+ const need=h=>{if(y-h<M){pg=doc.addPage([W,H]);y=H-M}};
+ const wrap=(t,f,s,w)=>{const out=[];let l='';for(const wd of clean(t).split(/\s+/)){const x=l?l+' '+wd:wd;if(f.widthOfTextAtSize(x,s)>w&&l){out.push(l);l=wd}else l=x}if(l)out.push(l);return out};
+ for(const b of m.blocks||[]){const T=b.text??'';
+  if(b.t=='h1'){const s=24;need(s+10);pg.drawText(clean(T),{x:M,y:y-s,size:s,font:B,color:acc});y-=s+10}
+  else if(b.t=='h2'){need(30);y-=8;pg.drawText(clean(T).toUpperCase(),{x:M,y:y-12,size:12,font:B,color:acc});y-=16;pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:1,color:acc});y-=8}
+  else if(b.t=='p'||b.t=='bullet'){const ind=b.t=='bullet'?14:0;let first=true;for(const l of wrap(T,R,10.5,W-2*M-ind)){need(15);const w=R.widthOfTextAtSize(l,10.5);
+    pg.drawText(l,{x:M+ind+(b.align=='center'?(W-2*M-ind-w)/2:0),y:y-11,size:10.5,font:R,color:ink});
+    if(first&&b.t=='bullet')pg.drawText('-',{x:M+3,y:y-11,size:10.5,font:B,color:acc});first=false;y-=14.5}
+   y-=2}
+  else if(b.t=='row'){need(16);const r=clean(b.right||'');pg.drawText(clean(b.left||''),{x:M,y:y-11,size:11,font:B,color:ink});
+   pg.drawText(r,{x:W-M-R.widthOfTextAtSize(r,10),y:y-11,size:10,font:R,color:ink});y-=17}
+  else if(b.t=='table'){const rows=b.rows||[],n=Math.max(...rows.map(r=>r.length),1),cw=(W-2*M)/n;
+   rows.forEach((r,ri)=>{const cells=r.map(c=>wrap(String(c),ri?R:B,9.5,cw-8)),lines=Math.max(...cells.map(c=>c.length),1),h=lines*12+8;need(h);
+    if(!ri)pg.drawRectangle({x:M,y:y-h,width:W-2*M,height:h,color:rgb(.92,.94,.98)});
+    cells.forEach((c,ci)=>c.forEach((l,li)=>pg.drawText(l,{x:M+ci*cw+4,y:y-14-li*12,size:9.5,font:ri?R:B,color:ink})));
+    pg.drawLine({start:{x:M,y:y-h},end:{x:W-M,y:y-h},thickness:.5,color:rgb(.7,.7,.75)});y-=h});y-=8}
+  else if(b.t=='hr'){need(10);pg.drawLine({start:{x:M,y:y-4},end:{x:W-M,y:y-4},thickness:.7,color:rgb(.7,.7,.75)});y-=10}
+  else if(b.t=='spacer')y-=10}
+ return new Uint8Array(await doc.save())}
+async function generate(prompt,extra=''){const m=await ai(GEN,prompt+extra);await load(await buildPdf(m),true,{});$('#mode').value='edit';
+ say('PDF created. Click any text to edit it, or ask me for changes.'+(m.missing?.length?'\nPlaceholders / info I did not invent:\n- '+m.missing.join('\n- '):''))}
+
+/* ---------- AI: edit existing ---------- */
+const EDIT=`You edit PDFs by returning ONLY JSON: {"summary":"one sentence","ops":[...]}. Coordinates are PDF points, origin bottom-left; each item is "id|text|x,y(baseline),size,width".
+Ops: {"op":"replaceAll","find","replace","scope":"all|selection"} (USE THIS for any \"replace X with Y\" request, even if X appears dozens of times; one op does them all, never refuse) {"op":"replaceText","id","text","color?"} (rewrite one text run; keep length similar) {"op":"erase","ids":[],"closeGap":true} (choose the ids to remove; the app itself closes the gap) {"op":"setColor","ids":[],"color":"#hex"} {"op":"move","ids":[],"dx","dy"} (dy>0 moves up) {"op":"addText","page":0,"x","y","size","text","color?"} {"op":"eraseRegion","page","x","y","w","h"}.
+Rules: change ONLY what was asked; "everywhere" means every matching item (replace within the item's text); if SELECTED ids are given, the instruction applies to them only; never move other items to close gaps after an erase (the app does that); never invent facts; if the request is impossible or unclear, return ops:[] and explain in summary.`;
+async function edit(instr){let pool=items;if(sel.size){const pp=new Set(items.filter(i=>sel.has(i.id)).map(i=>i.p));pool=items.filter(i=>pp.has(i.p))}else if(region)pool=items.filter(i=>i.p==region.p);
+ if(pool.length>LIM.items)say(`Large page: sending only the first ${LIM.items} of ${pool.length} text items to the AI. Select the part you want to change for best results.`,'e');
+ const list=pool.slice(0,LIM.items).map(i=>`${i.id}|${i.str}|${i.x.toFixed(0)},${i.y.toFixed(0)},${i.h.toFixed(1)},${i.w.toFixed(0)}`).join('\n');
+ const ctx=`Page sizes: ${pages.map((p,i)=>i+':'+p.w+'x'+p.h).join(', ')}\nSELECTED ids: ${[...sel].join(', ')||'none'}\nSELECTED region: ${region?JSON.stringify(region):'none'}\nItems:\n${list}\n\nInstruction: ${instr}`;
+ const r=await ai(EDIT,ctx);const ops=r.ops||[];ops.forEach(o=>{if(o.op=='erase'){o.closeGap=o.closeGap!==false&&$('#gap').checked;if(region&&!o.region)o.region=region}});if(region&&/remov|delet|eras/i.test(instr)&&!ops.some(o=>o.op=='eraseRegion'||o.op=='erase'))ops.push({op:'eraseRegion',page:region.p,x:region.x,y:region.y,w:region.w,h:region.h});
+ if(!ops.length)return say(r.summary||'Nothing to change.');
+ if(ops.length>8){pending=ops;const d=say(`Preview: ${r.summary}\n${ops.length} changes planned.`);for(const [l,f] of [['Apply',()=>{const o=pending;pending=null;run(o,'Applied')}],['Cancel',()=>{pending=null;say('Cancelled.')}]]){const b=document.createElement('button');b.textContent=l;b.onclick=f;b.style.marginRight='6px';d.append(document.createElement('br'),b)}}
+ else await run(ops,r.summary)}
+
+/* ---------- template + results (lab manual) ----------
+   No AI: the real pages of PDF 2 (logo, text, screenshots, fonts) are placed INSIDE the frame of PDF 1
+   (border, header, footer), so the result looks exactly like the format. */
+async function inkBox(pg,sc=2){const v=pg.getViewport({scale:sc}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:v}).promise;
+ const d=x.getImageData(0,0,c.width,c.height).data,W=c.width,H=c.height;let x0=W,y0=H,x1=-1,y1=-1;
+ for(let y=0;y<H;y++)for(let i=y*W*4,xx=0;xx<W;xx++,i+=4)if(d[i]<245||d[i+1]<245||d[i+2]<245){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
+ return x1<0?null:{x0:x0/sc,x1:(x1+1)/sc,y0:y0/sc,y1:(y1+1)/sc}} // visible-content box, points, measured from the page's top-left
+async function frameOf(tdoc,i){const pg=await tdoc.getPage(i+1),v=pg.getViewport({scale:1}),H=v.height,W=v.width,bx=await inkBox(pg); // bx = the border (it is the outermost ink)
+ const its=(await pg.getTextContent()).items.filter(t=>t.str.trim()).map(t=>({x:t.transform[4],y:t.transform[5],w:t.width,h:Math.hypot(t.transform[2],t.transform[3])||t.height||10}));
+ const head=its.filter(t=>t.y>H/2),foot=its.filter(t=>t.y<=H/2),padX=14;
+ const left=(bx?bx.x0:20)+padX,right=(bx?bx.x1:W-20)-padX;
+ const top=head.length?Math.min(...head.map(t=>t.y-.25*t.h))-20:H-40;   // area starts just below the header
+ const bottom=foot.length?Math.max(...foot.map(t=>t.y+.85*t.h))+6:40;   // and ends just above the footer
+ return{W,H,left,right,top,bottom,foot}}
+async function template(f1,f2,startNo){
+ const fb=await readBytes(f1),rb=await readBytes(f2);
+ const tdoc=await pdfjsLib.getDocument({data:fb.slice()}).promise,rdoc=await pdfjsLib.getDocument({data:rb.slice()}).promise;
+ const frames=[];for(let i=0;i<tdoc.numPages;i++)frames.push(await frameOf(tdoc,i));
+ const boxes=[];for(let p=1;p<=rdoc.numPages;p++)boxes.push(await inkBox(await rdoc.getPage(p)));
+ const idx=boxes.map((b,i)=>b?i:-1).filter(i=>i>=0); // blank pages of PDF 2 are skipped
+ if(!idx.length)throw new Error('PDF 2 has no visible content.');
+ const pad=2,ux0=Math.min(...idx.map(i=>boxes[i].x0))-pad,ux1=Math.max(...idx.map(i=>boxes[i].x1))+pad; // same left/right crop on every page keeps margins consistent
+ const aw=Math.min(...frames.map(f=>f.right-f.left)),ah=Math.min(...frames.map(f=>f.top-f.bottom));
+ const sc=Math.min(1,aw/(ux1-ux0),ah/Math.max(...idx.map(i=>boxes[i].y1-boxes[i].y0+2*pad))); // one scale for all pages; never enlarge
+ const tpl=await PDFDocument.load(fb),src=await PDFDocument.load(rb),out=await PDFDocument.create(),bold=await out.embedFont(StandardFonts.HelveticaBold),sp=src.getPages();
+ const no=parseInt(startNo,10);let n=0;
+ for(const j of idx){const ti=Math.min(n,frames.length-1),F=frames[ti],[page]=await out.copyPages(tpl,[ti]);out.addPage(page);
+  const sg=sp[j],mb=sg.getMediaBox(),b=boxes[j],bottom=mb.y+mb.height-b.y1-pad,topY=mb.y+mb.height-b.y0+pad;
+  const emb=await out.embedPage(sg,{left:Math.max(mb.x,mb.x+ux0),right:Math.min(mb.x+mb.width,mb.x+ux1),bottom:Math.max(mb.y,bottom),top:Math.min(mb.y+mb.height,topY)});
+  const w=emb.width*sc,h=emb.height*sc;page.drawPage(emb,{x:F.left+(F.right-F.left-w)/2,y:F.top-h,width:w,height:h});
+  if(!isNaN(no)&&F.foot.length){const fx0=Math.min(...F.foot.map(t=>t.x)),fx1=Math.max(...F.foot.map(t=>t.x+t.w)),fh=Math.max(...F.foot.map(t=>t.h)),fy=Math.min(...F.foot.map(t=>t.y)),txt=String(no+n),size=fh*.95;
+   page.drawRectangle({x:fx0-2,y:fy-.3*fh,width:fx1-fx0+4,height:fh*1.3,color:rgb(1,1,1)}); // replace the "Write Page No" placeholder with the real number
+   page.drawText(txt,{x:(fx0+fx1)/2-bold.widthOfTextAtSize(txt,size)/2,y:fy,size,font:bold,color:rgb(0,0,0)})}
+  n++}
+ await load(new Uint8Array(await out.save()),true,{});$('#mode').value='edit';
+ say(`Report created: ${n} page${n>1?'s':''} of PDF 2 placed inside the format of PDF 1 (border, header and footer kept; content untouched, no AI used).`+(n>frames.length?`\nPDF 1 has ${frames.length} page(s); its last page was reused as the frame for the remaining pages.`:''))}
+
+/* ---------- screenshot -> lab report ----------
+   The AI only READS the screenshots and WRITES the text (as JSON). The app itself lays everything out inside the
+   lab manual format (PDF 1), so the border / header / footer always stay exactly as in your format. */
+const SHOT_MAX=10; // every screenshot is read in its own request, so this is only a sanity cap
+let shot=null;    // {fmt,ref,refText,hdr,imgs,startNo,seen,stage:'ask'|'done'}
+const SHOT_SEE=`You look at ONE screenshot of a student's practical / lab OUTPUT (for example Cisco Packet Tracer, a terminal, program output, a graph, a trained model's results, a web page). Reply with ONLY JSON: {"summary":"2-3 plain sentences: what this screenshot shows, naming the tool or software","details":"everything useful that is actually readable: commands, IP addresses, numbers, table values, device names, status or error messages, axis labels","guess":"the lab experiment this most likely belongs to, or unsure","kind":"code (source code or typed commands) | output (result of running something: terminal output, ping, table, graph, web page) | setup (diagram, topology, installation) | other","file":"file name visible in the editor tab or title bar, else null","firstLine":"first code line NUMBER visible in the editor gutter, else null","lastLine":"last code line NUMBER visible in the gutter, else null"}. Describe only what is visible. Never invent values.`;
+const SHOT_ORDER=`You arrange screenshots for a college lab report in the order that makes sense to a reader. Order: 1) setup / diagram / topology, 2) source code or commands, from the top of a file to the bottom (use file names and line numbers; screenshots of the same file stay together and follow the line numbers), 3) the output of running it, 4) graphs / final results, 5) anything else. Inside a group keep the order that tells the story. Reply with ONLY JSON: {"order":[every screenshot index exactly once, 0-based],"why":"one short sentence"}.`;
+const SHOT_GEN=`You write a college practical / lab report for a student from screenshots of their real output. Reply with ONLY JSON: {"title":"Experiment No: 04","aim":"To ...","sections":[{"h":"Theory","blocks":[...]},...],"missing":["..."]}.
+Block types: {"t":"p","text"} {"t":"num","items":["..."]} {"t":"bullet","items":["..."]} {"t":"code","text"} {"t":"table","rows":[[...],...]} (first row = header).
+Default section order: Theory, Procedure, Output, Observation, Result, Conclusion. Add a "Program" / "Commands" section (with a code block) before Output when the experiment has code or commands. If a SAMPLE REPORT is given, use its section names and order instead. The section titled "Output" must be {"h":"Output"} with no blocks (the app inserts the screenshots itself, captioned Screenshot 1, Screenshot 2, ... in order). Refer to them as "Screenshot 1", "Screenshot 2" (numbered from 1) and cover all of them, in order, in Procedure and Observation.
+Rules: Theory = a short, correct textbook explanation of the concept in your own words. Procedure = numbered steps that match what the screenshots show. Observation, Result and Conclusion must be based ONLY on what is visible in the screenshots; never invent numbers, IP addresses or outcomes. Use the experiment number and title the student gave; if not given, use "Experiment No: [__]" and say so in "missing". AIM: use the student's aim if they gave one; if they did not, or they ask you to write it yourself, WRITE it: one clear sentence starting with "To", based on the experiment name and what the screenshots show. The aim must never be empty. Anything the screenshots cannot confirm goes into "missing", not into the report. Plain ASCII text only (write delta, eta, theta, >= and -> in words or ASCII; no Greek letters, no special hyphens), simple student-level language, no markdown. NEVER write the word "Screenshot" or image numbers anywhere in the report (not even in brackets); refer to things by file name or by what they show, for example "HebbianLearning.java" or "the console output".`;
+async function textOf(b){const d=await pdfjsLib.getDocument({data:b.slice()}).promise;let out='';
+ for(let p=1;p<=d.numPages;p++){const tc=await(await d.getPage(p)).getTextContent(),rows={};tc.items.forEach(i=>{if(!i.str.trim())return;const k=Math.round(i.transform[5]/3);(rows[k]=rows[k]||[]).push([i.transform[4],i.str])});
+  out+=Object.keys(rows).sort((a,b)=>b-a).map(k=>rows[k].sort((a,b)=>a[0]-b[0]).map(x=>x[1]).join(' ')).join('\n')+'\n'}return out}
+async function prepImg(f){ // -> {ai: small base64 JPEG for the AI, pdf: sharper JPEG bytes for the PDF, w, h}
+ const url=URL.createObjectURL(f),im=new Image();await new Promise((ok,no)=>{im.onload=ok;im.onerror=()=>no(new Error('Could not read image '+f.name));im.src=url});
+ const mk=max=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);return c};
+ const a=mk(1600),p=mk(2200);URL.revokeObjectURL(url);
+ const sm=mk(16),sd=sm.getContext('2d').getImageData(0,0,16,16).data;let br=0,bg=0,bb=0,bn=0;for(let i=0;i<16;i++)for(let j=0;j<16;j++)if(i==0||j==0||i==15||j==15){const o=(i*16+j)*4;br+=sd[o];bg+=sd[o+1];bb+=sd[o+2];bn++}
+ const bgc=[br/bn/255,bg/bn/255,bb/bn/255];
+ return{ai:a.toDataURL('image/jpeg',.85).split(',')[1],pdf:Uint8Array.from(atob(p.toDataURL('image/jpeg',.92).split(',')[1]),ch=>ch.charCodeAt(0)),w:p.width,h:p.height,bg:bgc}}
+async function refHeader(rb){ // the college logo + name block of PDF 2 = everything above its "Experiment No" line
+ try{const d=await pdfjsLib.getDocument({data:rb.slice()}).promise,pg=await d.getPage(1),H=pg.getViewport({scale:1}).height;
+  const t=(await pg.getTextContent()).items.find(i=>/^\s*experiment\b/i.test(i.str));if(!t)return null;
+  const bx=await inkBox(pg);if(!bx)return null;const cut=H-t.transform[5]-Math.hypot(t.transform[2],t.transform[3])-6; // top-down y just above the title line
+  return cut-bx.y0<20?null:{x0:bx.x0-2,x1:bx.x1+2,y0:bx.y0-2,y1:cut}}catch{return null}}
+async function shotAnalyse(f1,files,f3,startNo,auto=true,size='auto'){
+ const list=[...files];
+ if(list.length>SHOT_MAX)say(`Only the first ${SHOT_MAX} screenshots are used.`,'e');
+ const use=list.slice(0,SHOT_MAX),imgs=[];for(const f of use){const p=await prepImg(f);p.name=f.name;imgs.push(p)}
+ const fmt=await readBytes(f1),ref=f3?await readBytes(f3):null;
+ // Each screenshot is read in its own request, so none is skipped.
+ const num=v=>v==null||v===''||isNaN(+v)?null:+v,recs=[];let guess='';
+ for(let i=0;i<imgs.length;i++){
+  const w=say(`Reading screenshot ${i+1} of ${imgs.length} (${imgs[i].name})...`);
+  try{const r=await ai(SHOT_SEE,`This is screenshot ${i+1} of ${imgs.length}.`,[{mime:'image/jpeg',data:imgs[i].ai}]);
+   recs.push({summary:r.summary||'',details:r.details||'',kind:String(r.kind||'other').toLowerCase().split(/[\s|]/)[0],file:r.file&&!/^null$/i.test(r.file)?String(r.file):'',a:num(r.firstLine),b:num(r.lastLine)});
+   if(!guess&&r.guess&&!/^unsure/i.test(r.guess))guess=r.guess}
+  catch(e){recs.push({err:e.message,summary:'',details:'',kind:'other',file:'',a:null,b:null});say(`Screenshot ${i+1} (${imgs[i].name}) could not be read: ${e.message}`,'e')}
+  w.remove()}
+ // Arrange: the AI puts them in a logical order (setup, code top to bottom, outputs). If it fails, a simple rule does it.
+ let why='';
+ if(auto&&imgs.length>1){const w=say('Arranging the screenshots in a logical order...');let ord=null;
+  try{const r=await ai(SHOT_ORDER,recs.map((c,i)=>`${i}: [${c.kind}]${c.file?' file '+c.file:''}${c.a!=null?' lines '+c.a+'-'+c.b:''} - ${c.summary||'unreadable'}`).join('\n'));
+   const o=(r.order||[]).map(Number);if(o.length==imgs.length&&new Set(o).size==o.length&&o.every(k=>Number.isInteger(k)&&k>=0&&k<imgs.length)){ord=o;why=String(r.why||'')}}catch{}
+  if(!ord){const rk={setup:0,code:1,output:2};ord=imgs.map((_,i)=>i).sort((x,y)=>(rk[recs[x].kind]??3)-(rk[recs[y].kind]??3)||((recs[x].a??1e9)-(recs[y].a??1e9))||x-y);why='setup first, then code by line number, then outputs'}
+  w.remove();const I=ord.map(k=>imgs[k]),R=ord.map(k=>recs[k]);imgs.splice(0,imgs.length,...I);recs.splice(0,recs.length,...R)}
+ const seen=recs.map((c,i)=>c.err?`Screenshot ${i+1} (${imgs[i].name}): could not be read (${c.err}). It is still placed in the report.`:`Screenshot ${i+1} (${imgs[i].name}): ${c.summary}\nReadable details: ${c.details}`);
+ const lines=recs.map((c,i)=>`${i+1}. ${imgs[i].name} - ${c.err?'could not be read':c.summary}`);
+ shot={fmt,ref,refText:ref?(await textOf(ref)).slice(0,LIM.ref):'',hdr:ref?await refHeader(ref):null,imgs,startNo,layout:size||'auto',stage:'ask',seen:seen.join('\n\n'),notes:recs.map((c,i)=>({name:imgs[i].name,err:c.err,summary:c.summary,details:c.details}))};
+ say(`Here is the order the screenshots will appear in the PDF${auto&&imgs.length>1?' (arranged by AI: '+why+')':''}:\n${lines.join('\n')}\n\nLooks like: ${guess||'unsure'}\n\nI've looked at all of them. What would you like me to make? Tell me the experiment number and name, your aim if you have one, and anything you want included, or just say "you decide" and I'll work it out from the screenshots. (Say "cancel" to stop.)`)}
+async function buildShotPdf(rep,sh){ // screenshots are stacked one under another, full width, nothing cropped
+ let best=await buildShotPdfOnce(rep,sh,{cols:1,frac:1,force:true});
+ // a page holding only a line or two of spill-over text: tighten the text slightly so it pulls back onto the previous page
+ if(best.pages>1&&best.last<.22)for(const tight of [1,2]){const r=await buildShotPdfOnce(rep,sh,{...best.cfg,tight});if(r&&r.pages<best.pages){best=r;break}}
+ return best.bytes}
+async function buildShotPdfOnce(rep,sh,cfg){
+ if(!sh._frames){const tdoc=await pdfjsLib.getDocument({data:sh.fmt.slice()}).promise,fr=[];for(let i=0;i<tdoc.numPages;i++)fr.push(await frameOf(tdoc,i));
+  fr.forEach(f=>{f.bottom+=8;f.top-=4});sh._frames=fr} // a little air under the header and above the page number
+ const frames=sh._frames;
+ const tpl=await PDFDocument.load(sh.fmt),out=await PDFDocument.create(),TR=await out.embedFont(StandardFonts.TimesRoman),TB=await out.embedFont(StandardFonts.TimesRomanBold),CO=await out.embedFont(StandardFonts.Courier),HB=await out.embedFont(StandardFonts.HelveticaBold);
+ const ink=rgb(0,0,0),SZ=[12,11.5,11][cfg.tight||0],LH=[15,14.2,13.4][cfg.tight||0],done=[],gaps=[];let n=0,page,F,y;
+ const W=()=>F.right-F.left,fresh=()=>y>=F.top-1;
+ const newPage=async()=>{if(page)gaps.push(y-F.bottom);const ti=Math.min(n,frames.length-1);F=frames[ti];[page]=await out.copyPages(tpl,[ti]);out.addPage(page);done.push({page,F});y=F.top;n++};
+ const need=async h=>{if(y-h<F.bottom&&!fresh())await newPage()};
+ const wrap=(t,f,s,w)=>{const o=[];for(const para of String(t).replace(/\r/g,'').split('\n').map(clean)){let l='';for(const wd of para.split(/\s+/).filter(Boolean)){const x=l?l+' '+wd:wd;if(f.widthOfTextAtSize(x,s)>w&&l){o.push(l);l=wd}else l=x}o.push(l)}return o};
+ const wrapCode=(t,s,w)=>{const o=[],max=Math.max(10,Math.floor(w/CO.widthOfTextAtSize('M',s)));for(const l of String(t).replace(/\r/g,'').replace(/\t/g,'    ').split('\n').map(clean)){let r=l;do{o.push(r.slice(0,max));r=r.slice(max)}while(r.length)}return o};
+ const txt=async(t,o={})=>{const{f=TR,s=SZ,gap=LH}=o;for(const l of wrap(t,f,s,W())){await need(gap);page.drawText(l,{x:F.left,y:y-s,size:s,font:f,color:ink});y-=gap}};
+ const item=async(mark,t)=>{const ls=wrap(t,TR,SZ,W()-46);for(let i=0;i<ls.length;i++){await need(LH);if(!i){if(mark)page.drawText(mark,{x:F.left+28,y:y-SZ,size:SZ,font:TR,color:ink});else page.drawCircle({x:F.left+32,y:y-SZ*.35,size:1.8,color:ink})}page.drawText(ls[i],{x:F.left+46,y:y-SZ,size:SZ,font:TR,color:ink});y-=LH}};
+ const block=async b=>{
+  if(b.t=='p'){await txt(b.text||'');y-=3}
+  else if(b.t=='num'){for(const [i,t] of (b.items||[]).entries())await item((i+1)+'.',t);y-=3}
+  else if(b.t=='bullet'){for(const t of b.items||[])await item(null,t);y-=3}
+  else if(b.t=='code'){for(const l of wrapCode(b.text||'',9.5,W()-8)){await need(12);page.drawRectangle({x:F.left,y:y-12,width:W(),height:12,color:rgb(.95,.95,.95)});page.drawText(l,{x:F.left+4,y:y-9,size:9.5,font:CO,color:ink});y-=12}y-=4}
+  else if(b.t=='table'){const rows=b.rows||[],nc=Math.max(...rows.map(r=>r.length),1),cw=W()/nc;
+   for(const [ri,r] of rows.entries()){const cells=r.map(c=>wrap(String(c),ri?TR:TB,11,cw-8)),h=Math.max(...cells.map(c=>c.length),1)*13+6;await need(h);
+    cells.forEach((c,ci)=>{page.drawRectangle({x:F.left+ci*cw,y:y-h,width:cw,height:h,borderColor:ink,borderWidth:.6,color:ri?undefined:rgb(.92,.92,.92)});c.forEach((l,li)=>page.drawText(l,{x:F.left+ci*cw+4,y:y-12-li*13,size:11,font:ri?TR:TB,color:ink}))});y-=h}y-=6}};
+ const RH0=140,CAPH=12,MINK=.6; // RH0: room a heading needs before its first screenshot; MINK: smallest shrink allowed to squeeze a screenshot onto the current page
+ const shots=async idxs=>{ // one screenshot per row, full text width, natural shape (no tile, no blank bars, no cropping), one under another
+  for(const k of idxs){const im=sh.imgs[k];if(!im)continue;const e=await out.embedJpg(im.pdf);
+   const fit=()=>{const maxH=F.top-F.bottom-CAPH-2;let w=W(),h=w*im.h/im.w;if(h>maxH){h=maxH;w=h*im.w/im.h}return{w,h}};
+   let{w,h}=fit();const avail=y-F.bottom-CAPH-2;
+   if(h>avail&&!fresh()){const s=avail/h;if(s>=MINK&&avail>60){w*=s;h=avail} // shrink a little so it fills this page
+    else{await newPage();({w,h}=fit())}} // otherwise it starts the next page at full width
+   const bx=F.left+(W()-w)/2;
+   page.drawImage(e,{x:bx,y:y-h,width:w,height:h});
+   page.drawRectangle({x:bx,y:y-h,width:w,height:h,borderColor:rgb(.72,.72,.76),borderWidth:.6});
+   const cap='Fig. '+(k+1);page.drawText(cap,{x:F.left+(W()-TR.widthOfTextAtSize(cap,8.5))/2,y:y-h-10.5,size:8.5,font:TR,color:rgb(.3,.3,.35)});
+   y-=h+CAPH+4}};
+ await newPage();
+ if(sh.hdr&&sh.ref){const src=await PDFDocument.load(sh.ref),sg=src.getPages()[0],mb=sg.getMediaBox(),h=sh.hdr,e=await out.embedPage(sg,{left:mb.x+h.x0,right:mb.x+h.x1,bottom:mb.y+mb.height-h.y1,top:mb.y+mb.height-h.y0}),k=Math.min(1,W()/e.width);
+  page.drawPage(e,{x:F.left+(W()-e.width*k)/2,y:y-e.height*k,width:e.width*k,height:e.height*k});y-=e.height*k+18}
+ const title=clean(String(rep.title||'Experiment No: [__]'));await need(40);page.drawText(title,{x:F.left+(W()-TB.widthOfTextAtSize(title,14))/2,y:y-14,size:14,font:TB,color:ink});y-=36;
+ if(rep.aim){await txt('AIM : '+String(rep.aim).replace(/^\s*aim\s*:?\s*/i,''),{f:TB});y-=8}
+ const secs=(Array.isArray(rep.sections)?rep.sections:[]).map(s=>({...s}));
+ const allIdx=sh.imgs.map((_,i)=>i); // ALWAYS every screenshot, in upload order, in ONE Output section (the AI's own list is ignored)
+ secs.forEach(s=>{s.images=[]});
+ if(sh.imgs.length){let o=secs.find(s=>/^\s*output/i.test(s.h||''));
+  if(!o){const at=secs.findIndex(s=>/observation|result/i.test(s.h||''));o={h:'Output'};secs.splice(at<0?secs.length:at,0,o)}
+  o.images=allIdx;o.blocks=[]}
+ const normB=s=>{let bl=Array.isArray(s.blocks)?s.blocks:[];if(!bl.length){const x=s.text??s.content??s.body??s.paragraphs??s.items;if(typeof x=='string')bl=[{t:'p',text:x}];else if(Array.isArray(x))bl=[{t:/procedure|step/i.test(s.h||'')?'num':'bullet',items:x.map(String)}]}
+  return bl.map(b=>typeof b=='string'?{t:'p',text:b}:(!b.t&&b.items?{...b,t:'bullet'}:(!b.t?{...b,t:'p'}:b)))}; // accepts the AI's text even when it ignores the exact block format
+ for(const s of secs){const idx=(s.images||[]).filter(k=>Number.isInteger(k));
+  await need(LH*3+(idx.length?RH0:0));y-=4;await txt(String(s.h||'').replace(/:?\s*$/,':'),{f:TB});y-=2;
+  for(const b of normB(s))await block(b);
+  if(idx.length)await shots(idx);y-=4}
+ const no=parseInt(sh.startNo,10);
+ if(!isNaN(no))done.forEach((d,i)=>{const{page:pg,F:f}=d;if(!f.foot.length)return;const fx0=Math.min(...f.foot.map(t=>t.x)),fx1=Math.max(...f.foot.map(t=>t.x+t.w)),fh=Math.max(...f.foot.map(t=>t.h)),fy=Math.min(...f.foot.map(t=>t.y)),t=String(no+i),size=fh*.95;
+  pg.drawRectangle({x:fx0-2,y:fy-.3*fh,width:fx1-fx0+4,height:fh*1.3,color:rgb(1,1,1)}); // replace the "Write Page No" placeholder with the real number
+  pg.drawText(t,{x:(fx0+fx1)/2-HB.widthOfTextAtSize(t,size)/2,y:fy,size,font:HB,color:rgb(0,0,0)})});
+ return{cfg,pages:done.length,last:(F.top-y)/(F.top-F.bottom),bytes:new Uint8Array(await out.save()),score:done.length*600+gaps.reduce((s,g)=>s+Math.max(0,g),0)}} // fewer pages, fewer blank gaps, bigger (readable) tiles = better
+async function shotPart(prompt){let r=await ai(SHOT_GEN,prompt);if(r._cut)r=await ai(SHOT_GEN,prompt+'\n\nYour last answer was cut off. Answer again, MUCH shorter: one or two sentences per section, no code block longer than 10 lines.');return r}
+const noShotWords=v=>typeof v=='string'?v.replace(/\s*\(\s*screenshots?\s*#?\d+(\s*(?:,|&|and|-|to)\s*#?\d+)*\s*\)/gi,'').replace(/\bscreenshots?\s*#?\d+(\s*(?:,|&|and|-|to)\s*#?\d+)*/gi,'the image'):Array.isArray(v)?v.map(noShotWords):v&&typeof v=='object'?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,noShotWords(x)])):v;
+async function shotMake(t){const s=shot,n=s.imgs.length,w=say('Writing the report (part 1 of 2)...');s.req=t;
+ const base=`Student request: ${t}\n\nThe student has ${n} screenshot(s), numbered 1 to ${n} in this order. Each one was read separately:\n\n${s.seen}`+(s.refText?`\n\nSAMPLE REPORT (use its section names and writing style only; do not copy its facts):\n${s.refText}`:'');
+ const A=await shotPart(base+`\n\nPART 1 of 2. Return ONLY {"title","aim","sections","missing"} where sections = the sections that come BEFORE the Output section (e.g. Theory, Procedure, Program/Commands). Do NOT write Output, Observation, Result or Conclusion yet. The aim must never be empty: if the student did not give one or asked you to write it, write it yourself (one sentence starting with "To"). Keep it compact: Theory max 150 words; in a code block show at most 25 lines, only the key logic.`);
+ if(!String(A.aim||'').trim()){try{const q=await ai('Reply with ONLY JSON {"aim":"To ..."}. Write ONE clear aim sentence for this college lab experiment, starting with "To". Use the experiment name/number from the student request if present, otherwise infer it from the screenshots.',base);A.aim=q.aim}catch{}}
+ w.remove();const w2=say('Writing the report (part 2 of 2)...');
+ const have=(A.sections||[]).map(x=>String(x.h||'').trim()).filter(Boolean);
+ const B=await shotPart(base+`\n\nPART 2 of 2. Part 1 already wrote: ${have.join(', ')||'(nothing)'}. Return ONLY {"sections","missing"} where sections = the sections that come AFTER the Output section (e.g. Observation, Result, Conclusion). Do not repeat earlier sections, title or aim. The Observation must cover all ${n} screenshots in order. Max 120 words per section.`);
+ w2.remove();
+ const isOut=x=>/^\s*output/i.test(x.h||''),seenH=new Set(have.map(x=>x.toLowerCase()));
+ const rep={title:A.title,aim:A.aim,missing:[...(A.missing||[]),...(B.missing||[])],
+  sections:[...(A.sections||[]).filter(x=>!isOut(x)),{h:'Output',images:[]},...(B.sections||[]).filter(x=>!isOut(x)&&!seenH.has(String(x.h||'').trim().toLowerCase()))]};
+ s.rep=noShotWords(rep);await load(await buildShotPdf(s.rep,s),true,{});$('#mode').value='edit';s.stage='done';
+ say(`Lab report created: ${pages.length} page${pages.length>1?'s':''} in your lab manual format, with all ${n} screenshot(s) under "Output", in the order shown above.`+((A._cut||B._cut)?'\nThe AI reply was long and had to be shortened; type "redo <instructions>" if a section is too brief.':'')+(rep.missing.length?'\nI could not confirm these from the screenshots (check or fill them in):\n- '+rep.missing.join('\n- '):'')+'\nTo change anything, just tell me in the chat (for example: "make the theory shorter", "add a Result section", "move screenshot 3 to the start", "remove the last screenshot"). "redo <instructions>" rewrites the whole report.')}
+
+/* ---------- change a finished report by chatting ----------
+   After the report exists, anything the student says is applied to the REPORT (text, sections, screenshot order),
+   which is then laid out again by the app. The AI sees the current report, so it changes only what was asked. */
+const SHOT_REV=`You revise an existing college lab report for a student. You are given the CURRENT REPORT as JSON, notes on each screenshot (numbered 1..n in their current order) and the student's new message. Apply ONLY what the student asks and keep every other word of the report exactly as it is. Reply with ONLY JSON: {"reply":"one or two plain sentences telling the student what you changed, or answering their question","title":"...","aim":"...","sections":[...],"missing":[...],"order":[...]}.
+- If the message needs no change to the report (a question, or something you cannot do), reply with ONLY {"reply":"..."} and leave out title, aim, sections, missing and order.
+- If anything in the report changes, return the COMPLETE updated report (title, aim and ALL sections, including the unchanged ones).
+- "order" is optional: include it only when the student wants the screenshots reordered or some removed. It lists the screenshot numbers in the new order (each number once; leave a number out to remove that screenshot). Do not rewrite the text for a reorder.
+- Block types: {"t":"p","text"} {"t":"num","items":[...]} {"t":"bullet","items":[...]} {"t":"code","text"} {"t":"table","rows":[[...]]} (first row = header). The section titled "Output" must stay exactly {"h":"Output"} with no blocks; the app puts all screenshots there. To move the screenshots, move the Output section.
+- Same rules as the original report: plain ASCII only (no Greek letters or special hyphens), no markdown, simple student-level language, never invent numbers, IP addresses or results that are not visible in the screenshots (put such things in "missing"), and never write the word "Screenshot" or image numbers inside the report text.`;
+async function shotRevise(t){const s=shot,n=s.imgs.length;
+ const cur={title:s.rep.title,aim:s.rep.aim,sections:s.rep.sections.map(x=>/^\s*output/i.test(x.h||'')?{h:x.h}:{h:x.h,blocks:x.blocks,text:x.text,items:x.items,content:x.content,body:x.body,paragraphs:x.paragraphs}),missing:s.rep.missing||[]};
+ const notes=s.notes.map((c,i)=>`Screenshot ${i+1} (${c.name}): ${c.err?'could not be read':c.summary+' | '+String(c.details||'').slice(0,260)}`).join('\n').slice(0,3800);
+ const r=await ai(SHOT_REV,`CURRENT REPORT:\n${JSON.stringify(cur)}\n\nSCREENSHOTS (${n}):\n${notes}\n\nSTUDENT'S MESSAGE: ${t}`);
+ if(r._cut)return say('The change was too big for one answer, so nothing was changed. Please ask for it in smaller steps (for example one section at a time).','e');
+ const reply=String(r.reply||'').trim();let changed=false;
+ if(Array.isArray(r.order)&&r.order.length){const o=r.order.map(Number);if(o.every(k=>Number.isInteger(k)&&k>=1&&k<=n)&&new Set(o).size==o.length&&(o.length!=n||o.some((k,i)=>k!=i+1))){s.imgs=o.map(k=>s.imgs[k-1]);s.notes=o.map(k=>s.notes[k-1]);s.seen=s.notes.map((c,i)=>c.err?`Screenshot ${i+1} (${c.name}): could not be read. It is still placed in the report.`:`Screenshot ${i+1} (${c.name}): ${c.summary}\nReadable details: ${c.details}`).join('\n\n');changed=true}}
+ if(Array.isArray(r.sections)&&r.sections.length){const nr=noShotWords({title:r.title||s.rep.title,aim:r.aim??s.rep.aim,missing:Array.isArray(r.missing)?r.missing:s.rep.missing||[],sections:r.sections});
+  if(!nr.sections.some(x=>/^\s*output/i.test(x.h||''))){const k=s.rep.sections.findIndex(x=>/^\s*output/i.test(x.h||''));nr.sections.splice(k<0?nr.sections.length:Math.min(k,nr.sections.length),0,{h:'Output',images:[]})} // the screenshots must never get lost
+  s.rep=nr;changed=true}
+ if(!changed)return say(reply||'I did not find anything to change in the report. Tell me what to change (a section, the aim, the order of the screenshots...).');
+ await load(await buildShotPdf(s.rep,s),true,{});
+ say((reply||'Done.')+`\n(${pages.length} page${pages.length>1?'s':''}. Undo with Ctrl+Z.)`)}
+
+/* ---------- the friendly assistant ----------
+   Every normal message first goes to a conversational AI that talks like a friend, works out what the user really wants
+   (using the chat so far, the open PDF and the state of the report) and then either answers / asks / guides, or hands a
+   clear task to the editing code. If this call fails for any reason the app falls back to the old routing. */
+const chatHist=[];
+const FRIEND=`You are the built-in assistant of "AI PDF Editor", a web app. Talk like a warm, easygoing friend who truly wants the user to get what they came for: natural, encouraging, short, simple words (the user may not be a native English speaker). Reply in the language the user writes in. No headings, no bullet-point walls, at most one emoji, usually 1-3 sentences.
+Reply with ONLY JSON: {"say":"what you tell the user","do":"none|generate|edit|report_make|report_change|open_report|undo|redo|cancel","task":"..."}.
+The app does the real work when you choose an action. You never edit files yourself, so never claim something is already done: say what you are doing ("On it - I'll ...").
+What the app can do: open a PDF and edit it (click text, drag a region, double-click to type); replace X with Y everywhere; erase text or images (Delete key, closes the gap); change text colour; move text with the arrow keys; add text; add an image (toolbar button "Add image": click on the page, drag and resize it, press Place image; the text below moves down to make room); cut / copy image (toolbar button \"Cut / copy image\": click an image, choose Cut or Copy, then click where it should go; cutting moves the content below and the next page up); add / delete / reorder pages; undo / redo; download normal or flattened PDF; write a NEW PDF from a description (resume, letter, invoice, report...); "Screenshot -> Report": upload the lab-manual format PDF plus screenshots of the output and it writes a full lab report with the screenshots placed one under another; "Template + Results": put the pages of a results PDF inside a lab-manual frame.
+Choosing "do":
+- none: chatting, thanks, questions about the app or about the PDF (answer from DOCUMENT TEXT when it is given, and say honestly when it is not enough), when ONE clarifying question is really needed, or when the user must click something themselves (tell them exactly which button).
+- generate: they want a NEW PDF written from scratch. task = the full request with every detail they gave. If personal details are missing, still go ahead; placeholders will be used and you can mention it.
+- edit: change the open PDF (rewrite, replace, remove, move, recolour text). task = the instruction made self-contained (resolve "it" / "that" from the recent chat). Only when hasPdf is true.
+- report_make: ONLY when REPORT STATE says you are waiting for the answer about what report they want, and they gave it (or said you decide). task = their request including experiment number / name / aim / subject. If they asked a question or seem unsure, use none and help them first.
+- report_change: REPORT STATE says a report is finished and they want something changed (text, a section, the aim, the order or removal of screenshots, where Output goes...). task = a clear instruction.
+- open_report: they want to turn screenshots into a lab report and no report is in progress; the app opens the upload window.
+- undo / redo: they want the last change undone or redone. cancel: stop the screenshot-to-report flow.
+If a request is a bit vague, make a sensible guess, say what you assumed, and do it. Ask a question only when guessing could waste their work. Never invent facts about their document.`;
+function docGlimpse(){const L=items.slice().sort((a,b)=>a.p-b.p||b.y-a.y||a.x-b.x);let o='',lp=-1,ly=0;for(const i of L){if(o.length>1500)break;if(i.p!=lp){o+=`\n[page ${i.p+1}] `;lp=i.p;ly=i.y}else if(Math.abs(i.y-ly)>3){o+='\n';ly=i.y}else o+=' ';o+=i.str}return o.trim()}
+async function friend(t){
+ const asking=shot&&shot.stage=='ask',done=shot&&shot.stage=='done'&&shot.rep;
+ const rs=asking?`waiting: the student's ${shot.imgs.length} screenshot(s) were read and you asked what kind of lab report they want (experiment number / name / aim / anything to include). What the screenshots show:\n${String(shot.seen||'').slice(0,1200)}`
+  :done?`finished: a lab report titled "${shot.rep.title}" with sections ${shot.rep.sections.map(x=>x.h).join(', ')} and ${shot.imgs.length} screenshot(s).`:'none in progress';
+ const sn=sel.size||region?`${sel.size} text piece(s)${region?' + a region':''} selected`:'nothing selected';
+ const hist=chatHist.slice(-6).map(h=>`User: ${h.u}\nYou: ${h.a}`).join('\n');
+ const prompt=`STATE: hasPdf=${!!bytes}${bytes?`, pages=${pages.length}`:''}, ${sn}.\nREPORT STATE: ${rs}\n`+(bytes&&items.length?`DOCUMENT TEXT (start):\n${docGlimpse()}\n`:'')+(hist?`\nRECENT CHAT:\n${hist}\n`:'')+`\nUSER: ${t}`;
+ let r;try{r=await ai(FRIEND,prompt,undefined,.6)}catch{return false}
+ const sayT=String(r.say||'').trim(),act=String(r.do||'none').trim(),task=String(r.task||'').trim()||t;
+ if(!sayT&&(act=='none'||!['generate','edit','report_make','report_change','open_report','undo','redo','cancel'].includes(act)))return false;
+ chatHist.push({u:t.slice(0,300),a:sayT.slice(0,300)});if(chatHist.length>12)chatHist.shift();
+ if(sayT)say(sayT);
+ if(act=='generate'){await generate(task)}
+ else if(act=='edit'){if(bytes)await edit(task)}
+ else if(act=='report_make'&&asking){await shotMake(task)}
+ else if(act=='report_change'&&done){await shotRevise(task)}
+ else if(act=='report_change'&&bytes){await edit(task)}
+ else if(act=='open_report'&&!asking){$('#bShot').click()}
+ else if(act=='undo'){$('#bUndo').click()}
+ else if(act=='redo'){$('#bRedo').click()}
+ else if(act=='cancel'&&shot){shot=null}
+ return true}
+
+/* ---------- home screen */
+function homeHTML(){return `<div class="hero"><div class="fl">📄</div><h1>Edit, create and report —<br>all your PDFs in one place</h1><p>Open a PDF to edit it, let the AI write a new one, or turn your output screenshots into a finished lab report.</p>
+ <div class="cta"><button class="w" data-go="open">📂 Open a PDF</button><button class="g" data-go="gen">✨ Create with AI</button></div></div>
+ <h3>Quick start</h3><div class="cards">
+ <button class="card c1" data-go="open"><div class="ic">📂</div><b>Open PDF</b><span>Edit text, erase, recolour, move, add images and pages. Works without AI.</span></button>
+ <button class="card c2" data-go="gen"><div class="ic">✨</div><b>Create with AI</b><span>Describe a resume, letter or report and get a PDF in seconds.</span></button>
+ <button class="card c3" data-go="shot"><div class="ic">📸</div><b>Screenshot → Report</b><span>Upload output screenshots; the AI orders them and writes the report in your lab format.</span></button>
+ <button class="card c4" data-go="tpl"><div class="ic">🧪</div><b>Template + Results</b><span>Pour your results PDF into the required lab manual format.</span></button>
+ <button class="card c5" data-go="doc"><div class="ic">📝</div><b>Word → PDF</b><span>Convert a .docx to PDF in the same order; text and images are resized to fill every page.</span></button></div>
+ <h3>Try asking the AI</h3><div class="tags">
+ <span class="tg">Create a professional software engineer resume</span><span class="tg">Write a formal leave application letter</span><span class="tg">Make a one-page invoice for web design services</span><span class="tg">Create a project report cover page</span></div>
+ <h3>What you can do</h3><div class="feat"><div>Replace X with Y everywhere</div><div>Erase text and close the gap</div><div>Change text colour</div><div>Move text with arrow keys</div><div>Add resizable images</div><div>Add, delete and reorder pages</div><div>Undo / redo every change</div><div>Download normal or flattened PDF</div><div>Convert Word to PDF, fitted to the page</div></div>
+ <p class="tip">Tip: double-click any text to edit it, press <kbd>Delete</kbd> to erase the selection.</p>`}
+function showHome(){const b=$('#pages');b.innerHTML='<div class="home" id="home">'+homeHTML()+'</div>';$('#thumbs').innerHTML='';$('#thumbs').style.display='none'}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go],.tg');if(!t||!t.closest('#home'))return;
+ if(t.classList.contains('tg')){$('#mode').value='gen';$('#msg').value=t.textContent;$('#msg').focus();return}
+ const g=t.dataset.go;if(g=='open')$('#bOpen').click();else if(g=='shot')$('#bShot').click();else if(g=='tpl')$('#bTpl').click();else if(g=='doc')$('#bDoc').click();else{$('#mode').value='gen';$('#msg').focus();$('#msg').placeholder='Describe the PDF you want, e.g. a professional software engineer resume'}});
+
+/* ---------- wiring ---------- */
+async function send(){const t=$('#msg').value.trim();if(!t)return;$('#msg').value='';say(t,'u');const w=say('Thinking...');
+ try{
+  const asking=shot&&shot.stage=='ask';
+  if(asking&&/^\s*(cancel|stop|never\s?mind)\s*[.!]?\s*$/i.test(t)){shot=null;say('No worries, I stopped. Tell me whenever you want to try again!');w.remove();return}
+  const rd=shot&&shot.stage=='done'&&t.match(/^\s*(?:redo|regenerate)\b[:,\s]*(.*)$/i);if(rd){await shotMake(rd[1]?(shot.req||'')+'\n\nChanges asked for now: '+rd[1]:(shot.req||t));w.remove();return}
+  if(!asking){ // instant commands that need no AI
+   const m=bytes&&$('#mode').value=='edit'&&t.match(REPL_RX);
+   if(m){const find=m[1].trim(),to=m[2].trim(),scope=!/everywhere|all\b|whole|entire/i.test(t)&&sel.size?'selection':'all',re=new RegExp(esc(find),'i');
+    if(items.some(i=>(scope=='all'||sel.has(i.id))&&re.test(i.str))){await run([{op:'replaceAll',find,replace:to,scope}],`[local] Replaced "${find}" with "${to}"`);w.remove();return}}
+   if(bytes&&$('#mode').value=='edit'){
+    if((sel.size||region)&&DEL_RX.test(t)){w.remove();await eraseSel();return}
+    const c=sel.size&&colourOf(t);if(c){w.remove();await local([{op:'setColor',ids:[...sel],color:c}],'[local] Colour changed');return}}}
+  if(await friend(t)){w.remove();return} // the friendly assistant understood the message
+  // fallback (the assistant could not be reached): the older direct routing
+  if(asking){await shotMake(t);w.remove();return}
+  if(shot&&shot.stage=='done'&&shot.rep&&bytes&&!(sel.size||region)&&!REPL_RX.test(t)){await shotRevise(t);w.remove();return}
+  if($('#mode').value=='gen'||!bytes)await generate(t);else await edit(t)}catch(e){say(String(e.message||e),'e')}w.remove()}
+$('#bSend').onclick=send;$('#msg').onkeydown=e=>{if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();send()}};
+$('#bOpen').onclick=()=>$('#fOpen').click();$('#fOpen').onchange=async e=>{const f=e.target.files[0];if(f){shot=null;hist=[];fut=[];bytes=null;await load(await readBytes(f),true,{});$('#mode').value='edit';say('Loaded '+f.name+'. Select something or tell me what to change.')}e.target.value=''};
+$('#bNew').onclick=()=>{shot=null;dead={};bytes=null;hist=[];fut=[];items=[];pages=[];showHome();$('#mode').value='gen'};
+$('#bUndo').onclick=async()=>{if(hist.length){fut.push({bytes,dead});const s=hist.pop();await load(s.bytes,false,s.dead)}};$('#bRedo').onclick=async()=>{if(fut.length){hist.push({bytes,dead});const s=fut.pop();await load(s.bytes,false,s.dead)}};
+async function zoomBy(delta){if(!bytes)return;let a=zoomAnchor;if(!a){const el=$('#pg'+active)||$('#pg0'),cr=$('#pages').getBoundingClientRect(),r=el?.getBoundingClientRect();if(!r)return;a={p:+el.id.slice(2),fx:.5,fy:.5,sx:r.left+r.width/2-cr.left,sy:r.top+r.height/2-cr.top}}const next=Math.max(.5,Math.min(5,Math.round((zoom+delta)*100)/100));if(next===zoom)return;zoom=next;await render();const el=$('#pg'+a.p),box=$('#pages'),r=el?.getBoundingClientRect(),cr=box.getBoundingClientRect();if(r){box.scrollLeft+=r.left+a.fx*r.width-(cr.left+a.sx);box.scrollTop+=r.top+a.fy*r.height-(cr.top+a.sy)}}
+$('#bZi').onclick=()=>zoomBy(.25);$('#bZo').onclick=()=>zoomBy(-.25);
+$('#bTxt').onclick=()=>{if(!bytes)return;document.body.style.cursor='crosshair';say('Click on the page where the text should go.');placing=(p,x,y)=>{const t=prompt('Text to add:');if(t)run([{op:'addText',page:p,x,y,size:12,text:t}])}};
+function sampledColorQuick(p,x,y){const pg=pages[p],c=document.querySelectorAll('.pg canvas')[p];if(!c)return '#000000';const sx=c.width/pg.w,sy=c.height/pg.h,px=Math.max(0,Math.min(c.width-1,Math.floor(x*sx))),py=Math.max(0,Math.min(c.height-1,Math.floor((pg.h-y)*sy)));try{const d=c.getContext('2d').getImageData(px,py,1,1).data;if(d[3]<16)return '#ffffff';return '#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('')}catch(e){return '#000000'}}
+async function sampleTextColor(p,x,y){const pg=pages[p],page=await pdfDoc.getPage(p+1),hits=items.filter(i=>i.p===p&&x>=i.x-2&&x<=i.x+i.w+2&&y>=i.y-i.h*.5&&y<=i.y+i.h*1.15).sort((a,b)=>Math.hypot(x-(a.x+a.w/2),y-(a.y+a.h*.3))-Math.hypot(x-(b.x+b.w/2),y-(b.y+b.h*.3))),it=hits[0];let left=it?it.x-.5:x-3,right=it?it.x+it.w+.5:x+3,bottom=it?it.y-it.h*.2-.5:y-3,top=it?it.y+it.h*.8+.5:y+3;left=Math.max(0,left);right=Math.min(pg.w,right);bottom=Math.max(0,bottom);top=Math.min(pg.h,top);if(right<=left||top<=bottom)return sampledColor(p,x,y);const scale=Math.min(24,12000/Math.max(1,right-left)),v=page.getViewport({scale,offsetX:-left*scale,offsetY:-(pg.h-top)*scale}),c=document.createElement('canvas');c.width=Math.max(1,Math.ceil((right-left)*scale));c.height=Math.max(1,Math.ceil((top-bottom)*scale));const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);try{await page.render({canvasContext:ctx,viewport:v}).promise;const data=ctx.getImageData(0,0,c.width,c.height).data,hist=new Map(),edge=new Map();for(let yy=0;yy<c.height;yy++)for(let xx=0;xx<c.width;xx++){const k=(yy*c.width+xx)*4,r=data[k],g=data[k+1],b=data[k+2],key=(r<<16)|(g<<8)|b;hist.set(key,(hist.get(key)||0)+1);if(xx===0||yy===0||xx===c.width-1||yy===c.height-1)edge.set(key,(edge.get(key)||0)+1)}let bg=0,bgN=0;for(const [k,n] of edge)if(n>bgN){bg=k;bgN=n}let maxD=0;for(const k of hist.keys()){if(k===bg)continue;const dr=(k>>16)-(bg>>16&255),dg=(k>>8&255)-(bg>>8&255),db=(k&255)-(bg&255),d=dr*dr+dg*dg+db*db;if(d>maxD)maxD=d}let best=0,bestN=0;for(const [k,n] of hist){if(k===bg)continue;const dr=(k>>16)-(bg>>16&255),dg=(k>>8&255)-(bg>>8&255),db=(k&255)-(bg&255),d=dr*dr+dg*dg+db*db;if(d>=maxD*.9&&n>bestN){best=k;bestN=n}}if(!bestN)return sampledColor(p,x,y);return '#'+[best>>16&255,best>>8&255,best&255].map(q=>q.toString(16).padStart(2,'0')).join('')}finally{c.width=0;c.height=0}}$('#bBox').onclick=()=>{if(!bytes)return;const st={color:boxDefaults.color,tc:boxDefaults.tc,pick:null,pickedBox:false,pickedText:false},bar=document.createElement('div');bar.id='boxBar';bar.innerHTML='<label>Box color <input type="color" data-k="color"></label><span id="boxHex"></span><button type="button" id="pickBox">1. Pick box pixel</button><label>Text color <input type="color" data-k="tc"></label><span id="textHex"></span><button type="button" id="pickText" disabled>2. Pick text pixel</button><button class="p" type="button" id="drawBox" disabled>3. Drag cover area</button><button type="button" id="pasteSavedBox">Paste copied box</button><button type="button" id="moveLastBox" disabled>Move last box</button><button type="button" id="cancelBox">Cancel</button>';document.body.append(bar);const bg=bar.querySelector('[data-k="color"]'),fg=bar.querySelector('[data-k="tc"]');bg.value=st.color;fg.value=st.tc;showHex(bar.querySelector('#boxHex'),st.color);showHex(bar.querySelector('#textHex'),st.tc);bg.oninput=()=>{st.color=bg.value;showHex(bar.querySelector('#boxHex'),st.color)};fg.oninput=()=>{st.tc=fg.value;showHex(bar.querySelector('#textHex'),st.tc)};const ovs=[...document.querySelectorAll('.ov')],fns=[];ovs.forEach((ov,p)=>{const fn=async e=>{if(!st.pick)return;e.preventDefault();e.stopImmediatePropagation();const r=ov.getBoundingClientRect(),x=(e.clientX-r.left)/zoom,y=pages[p].h-(e.clientY-r.top)/zoom,kind=st.pick,btn=bar.querySelector(kind==='color'?'#pickBox':'#pickText');st.pick=null;btn.textContent='Sampling...';let c;try{c=kind==='tc'?await sampleTextColor(p,x,y):await sampledColor(p,x,y)}catch(err){say('Could not sample that pixel. Click a visible PDF pixel and try again.','e');c=null}if(c){st[kind]=c;(kind==='color'?bg:fg).value=c;showHex(bar.querySelector(kind==='color'?'#boxHex':'#textHex'),c);if(kind==='color'){st.pickedBox=true;bar.querySelector('#pickText').disabled=false;say('Box pixel sampled. Now choose the text color pixel.')}else{st.pickedText=true;bar.querySelector('#drawBox').disabled=false;say('Both colors sampled. Now drag over the text to size the cover box.')}}bar.querySelector('#pickBox').textContent='1. Pick box pixel';bar.querySelector('#pickText').textContent='2. Pick text pixel'};fns.push(fn);ov.addEventListener('mousedown',fn,true)});bar.querySelector('#pickBox').onclick=()=>{st.pickedBox=false;st.pickedText=false;bar.querySelector('#pickText').disabled=true;bar.querySelector('#drawBox').disabled=true;st.pick='color';bar.querySelector('#pickBox').textContent='Click PDF pixel...';say('Click a pixel in the output for the box color.')};bar.querySelector('#pickText').onclick=()=>{if(!st.pickedBox){say('Pick the box color pixel first.','e');return}st.pickedText=false;bar.querySelector('#drawBox').disabled=true;st.pick='tc';bar.querySelector('#pickText').textContent='Click PDF pixel...';say('Now click a pixel on the text to sample its color.')};const cleanup=()=>ovs.forEach((ov,p)=>ov.removeEventListener('mousedown',fns[p],true));bar.querySelector('#pasteSavedBox').onclick=()=>{if(!boxClipboard)return say('Place or copy a box first.','e');const c={...boxClipboard};cleanup();bar.remove();document.body.style.cursor='crosshair';placingDrag=false;placing=(np,nx,ny)=>boxPlace(np,nx,ny,c.w,c.h,c);say('Click where to paste the copied box.')};bar.querySelector('#moveLastBox').disabled=!lastBox;bar.querySelector('#moveLastBox').onclick=async()=>{if(!lastBox)return;const b={...lastBox,st:{...lastBox.st},currentBytes:bytes.slice()};cleanup();bar.remove();await load(b.base.slice(),false,dead);document.body.style.cursor='crosshair';placingDrag=false;placing=(np,nx,ny)=>boxPlace(np,nx,ny,b.st.w,b.st.h,{...b.st,moveOnly:true,restore:b.currentBytes,restoreLast:b});say('Click the new location for the last box, then place it.')};bar.querySelector('#cancelBox').onclick=()=>{cleanup();bar.remove()};bar.querySelector('#drawBox').onclick=()=>{if(!st.pickedBox||!st.pickedText){say('Sample the box pixel and text pixel first.','e');return}cleanup();boxDefaults={color:st.color,tc:st.tc};bar.remove();document.body.style.cursor='crosshair';say('Drag over the text to size the cover box using the same area selection gesture as Erase section. Type your text after the rectangle is selected.');placingDrag=true;placing=(p,x,y,w,h)=>boxPlace(p,x,y,w,h)}};
+/* ---------- more fonts + exact colour picking ---------- */
+const WF=[['roboto','Roboto','400n 400i 700n 700i'],['open-sans','Open Sans','400n 400i 700n 700i'],['lato','Lato','400n 400i 700n 700i'],['montserrat','Montserrat','400n 400i 700n 700i'],['poppins','Poppins','400n 400i 700n 700i'],['oswald','Oswald (condensed)','400n 700n'],
+ ['merriweather','Merriweather (serif)','400n 400i 700n 700i'],['lora','Lora (serif)','400n 400i 700n 700i'],['playfair-display','Playfair Display (serif)','400n 400i 700n 700i'],['source-code-pro','Source Code Pro (mono)','400n 400i 700n 700i'],['roboto-mono','Roboto Mono (mono)','400n 400i 700n 700i'],['pacifico','Pacifico (script)','400n']];
+const WFN={'400n':'','400i':' Italic','700n':' Bold','700i':' Bold Italic'};
+const WFOPT='<optgroup label="More fonts">'+WF.flatMap(([id,l,st])=>st.split(' ').map(k=>`<option value="W:${id}:${k.slice(0,3)}:${k[3]=='i'?'italic':'normal'}">${l}${WFN[k]}</option>`)).join('')+'</optgroup>';
+{const css=WF.flatMap(([id,,st])=>st.split(' ').map(k=>`@font-face{font-family:"WF_${id}";font-weight:${k.slice(0,3)};font-style:${k[3]=='i'?'italic':'normal'};src:url(fonts/${id}-${k.slice(0,3)}-${k[3]=='i'?'italic':'normal'}.woff) format("woff")}`)).join('');const e=document.createElement('style');e.textContent=css;document.head.append(e)}
+function fontCss(key){if(key.startsWith('W:')){const[,id,w,sty]=key.split(':');return{fontFamily:`"WF_${id}",Arial,sans-serif`,fontWeight:w,fontStyle:sty}}
+ return{fontFamily:key.startsWith('Times')?'Georgia':key.startsWith('Courier')?'monospace':'Arial',fontWeight:/Bold/.test(key)?'bold':'normal',fontStyle:/Italic|Oblique/.test(key)?'italic':'normal'}}
+const wfLoad=async key=>{if(key.startsWith('W:')){const c=fontCss(key);try{await document.fonts.load(`${c.fontStyle} ${c.fontWeight} 16px ${c.fontFamily.split(',')[0]}`)}catch(e){}}};
+async function embedFontAny(d,key,fm){if(!key.startsWith('W:'))return d.embedFont(fm[key]);
+ const[,id,w,sty]=key.split(':'),r=await fetch(`fonts/${id}-${w}-${sty}.woff`);if(!r.ok)throw new Error('Font file missing: '+id);
+ d.registerFontkit(fontkit);return d.embedFont(new Uint8Array(await r.arrayBuffer()),{subset:true})}
+const toHex=(r,g,b)=>'#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+function rgbToLab(r,g,b){const f=v=>{v/=255;return v>.04045?Math.pow((v+.055)/1.055,2.4):v/12.92},R=f(r),G=f(g),B=f(b),X=(R*.4124+G*.3576+B*.1805)/.95047,Y=R*.2126+G*.7152+B*.0722,Z=(R*.0193+G*.1192+B*.9505)/1.08883,t=v=>v>.008856?Math.cbrt(v):7.787*v+16/116;return[116*t(Y)-16,500*(t(X)-t(Y)),200*(t(Y)-t(Z))]}
+let COLNAMES=null;
+async function colorName(h){if(!COLNAMES){try{const j=await(await fetch('vendor/colornames.json')).json();COLNAMES=Object.entries(j).map(([x,n])=>({n,l:rgbToLab(parseInt(x.slice(0,2),16),parseInt(x.slice(2,4),16),parseInt(x.slice(4,6),16))}))}catch(e){COLNAMES=[]}}
+ const v=parseInt(h.slice(1),16),r=v>>16&255,g=v>>8&255,b=v&255,l=rgbToLab(r,g,b);let best=null,bd=1e9;for(const c of COLNAMES){const d=(c.l[0]-l[0])**2+(c.l[1]-l[1])**2+(c.l[2]-l[2])**2;if(d<bd){bd=d;best=c}}
+ const mx=Math.max(r,g,b)/255,mn=Math.min(r,g,b)/255,L=(mx+mn)/2,dl=mx-mn,S=dl?dl/(1-Math.abs(2*L-1)):0;let H=0;if(dl){H=mx==r/255?((g-b)/255/dl)%6:mx==g/255?(b-r)/255/dl+2:(r-g)/255/dl+4;H=Math.round((H*60+360)%360)}
+ return(best?(Math.sqrt(bd)>2.5?'≈ ':'')+best.n+' · ':'')+`rgb(${r}, ${g}, ${b}) · hsl(${H}°, ${Math.round(S*100)}%, ${Math.round(L*100)}%)`}
+async function showHex(el,c){el.textContent=c.toUpperCase();const n=await colorName(c);if(el.textContent.startsWith(c.toUpperCase()))el.textContent=c.toUpperCase()+' · '+n}
+async function sampledColor(p,x,y){ // reads the true colour from a high-resolution render of the spot, ignoring anti-aliasing and JPEG noise
+ try{const pg=pages[p],page=await pdfDoc.getPage(p+1),R=.8,sc=12,v=page.getViewport({scale:sc,offsetX:-(x-R)*sc,offsetY:-(pg.h-(y+R))*sc}),c=document.createElement('canvas');c.width=c.height=Math.round(2*R*sc);
+  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);await page.render({canvasContext:ctx,viewport:v}).promise;
+  const d=ctx.getImageData(0,0,c.width,c.height).data,n=c.width*c.height,med=k=>{const a=[];for(let i=0;i<n;i++)a.push(d[i*4+k]);a.sort((u,w)=>u-w);return a[n>>1]},m=[med(0),med(1),med(2)],dist=(i,q)=>Math.hypot(d[i*4]-q[0],d[i*4+1]-q[1],d[i*4+2]-q[2]);
+  const ci=(c.height>>1)*c.width+(c.width>>1);let cen=[0,0,0],cn=0;for(let yy=-2;yy<=2;yy++)for(let xx=-2;xx<=2;xx++){const i=ci+yy*c.width+xx;cen[0]+=d[i*4];cen[1]+=d[i*4+1];cen[2]+=d[i*4+2];cn++}cen=cen.map(z=>z/cn);
+  const ref=Math.hypot(cen[0]-m[0],cen[1]-m[1],cen[2]-m[2])>40?cen:m; // a thin line or letter was clicked: trust the pixel under the cursor
+  let a=[0,0,0],k=0;for(let i=0;i<n;i++)if(dist(i,ref)<=24){a[0]+=d[i*4];a[1]+=d[i*4+1];a[2]+=d[i*4+2];k++}
+  c.width=0;return k?toHex(a[0]/k,a[1]/k,a[2]/k):toHex(...ref)}catch(e){return sampledColorQuick(p,x,y)}}
+async function boxPlace(p,x,y,w,h,copy=null){const pg=pages[p],ov=document.querySelectorAll('.ov')[p],st={x,y,w:w??150,h:h??54,manualSize:!!copy,color:copy?.color||boxDefaults.color,tc:copy?.tc||boxDefaults.tc,font:copy?.font||'Helvetica',size:copy?.size||14,text:copy?.text||'',textHeight:copy?.textHeight||100},moveOnly=!!copy?.moveOnly,box=document.createElement('div');box.className='txtbox'+(moveOnly?' moveOnly':'');ov.append(box);const ta=document.createElement('textarea');ta.className='boxEditor';ta.disabled=true;ta.onmousedown=e=>e.stopPropagation();box.append(ta);const bar=document.createElement('div');bar.id='boxBar';bar.innerHTML='<select><option>Helvetica</option><option>HelveticaBold</option><option>HelveticaOblique</option><option>HelveticaBoldOblique</option><option>TimesRoman</option><option>TimesRomanBold</option><option>TimesRomanItalic</option><option>TimesRomanBoldItalic</option><option>Courier</option><option>CourierBold</option><option>CourierOblique</option><option>CourierBoldOblique</option>'+WFOPT+'</select><label>Text size (pt) <input type="number" id="textSize" min="1" max="72" step="0.5" value="14"></label><input type="range" id="textSizeSlider" min="1" max="72" step="0.5" value="14"><span id="textSizeLabel">14 pt</span><label>Text height <input type="range" id="textHeight" min="50" max="200" step="5" value="100"></label><span id="textHeightLabel">100%</span><label>Width (pt) <input type="number" id="boxW" min="2" step="0.1" disabled></label><label>Height (pt) <input type="number" id="boxH" min="2" step="0.1" disabled></label><button type="button" id="moveBoxToggle">Move box</button><button type="button" id="copyBoxText">Copy box</button><button type="button" id="pasteBoxText">Paste copy</button><button class="p" type="button">Place</button><button type="button">Cancel</button>';document.body.append(bar);if(moveOnly)bar.classList.add('moveOnly');const sel=bar.querySelector('select'),sz=bar.querySelector('#textSize'),sizeRange=bar.querySelector('#textSizeSlider'),sizeLabel=bar.querySelector('#textSizeLabel'),heightRange=bar.querySelector('#textHeight'),heightLabel=bar.querySelector('#textHeightLabel'),moveBtn=bar.querySelector('#moveBoxToggle'),boxW=bar.querySelector('#boxW'),boxH=bar.querySelector('#boxH'),copyBtn=bar.querySelector('#copyBoxText'),pasteBtn=bar.querySelector('#pasteBoxText'),[ok,no]=[...bar.querySelectorAll('button')].slice(-2);ta.value=st.text;sel.value=st.font;sz.value=st.size;sizeRange.value=st.size;heightRange.value=st.textHeight;heightLabel.textContent=st.textHeight+'%';moveBtn.textContent=moveOnly?'Done moving':'Move box';let moving=moveOnly;moveBtn.onclick=()=>{moving=!moving;box.classList.toggle('moveOnly',moving);bar.classList.toggle('moveOnly',moving);ta.disabled=moving;ta.style.pointerEvents=moving?'none':'';moveBtn.textContent=moving?'Done moving':'Move box';if(!moving)ta.focus()};heightRange.oninput=()=>{st.textHeight=+heightRange.value;heightLabel.textContent=st.textHeight+'%';show()};copyBtn.onclick=()=>{st.text=ta.value;boxClipboard={...st};say('Box copied. Use Paste copy to place another one.')};pasteBtn.onclick=()=>{if(!boxClipboard)return say('Copy a box first.','e');const c={...boxClipboard};no.click();placingDrag=false;placing=(np,nx,ny)=>boxPlace(np,nx,ny,c.w,c.h,c);document.body.style.cursor='crosshair';say('Click where to place the copied box. Drag or resize it before placing.')};ta.disabled=moveOnly;ta.style.pointerEvents=moveOnly?'none':'';ta.oninput=()=>{st.text=ta.value;show()};sel.onchange=async()=>{st.font=sel.value;await wfLoad(st.font);show()};sz.oninput=()=>{st.size=Math.max(1,Math.min(72,+sz.value||14));st.manualSize=true;sizeRange.value=st.size;sizeLabel.textContent=st.size.toFixed(1)+' pt';show()};sizeRange.oninput=()=>{sz.value=sizeRange.value;st.size=+sizeRange.value;st.manualSize=true;sizeLabel.textContent=st.size.toFixed(1)+' pt';show()};boxW.oninput=()=>{st.w=Math.max(2,+boxW.value||2);show()};boxH.oninput=()=>{st.h=Math.max(2,+boxH.value||2);show()};const track=fn=>{const up=()=>{removeEventListener('mousemove',fn);removeEventListener('mouseup',up)};addEventListener('mousemove',fn);addEventListener('mouseup',up)},dims=()=>{boxW.value=st.w.toFixed(1);boxH.value=st.h.toFixed(1)},show=()=>{st.w=Math.max(2,Math.min(st.w,pg.w));st.h=Math.max(2,Math.min(st.h,pg.h));st.x=Math.max(0,Math.min(st.x,pg.w-st.w));st.y=Math.max(st.h,Math.min(st.y,pg.h));const sx=ov.clientWidth/pg.w,sy=ov.clientHeight/pg.h;Object.assign(box.style,{left:st.x*sx+'px',top:(pg.h-st.y)*sy+'px',width:st.w*sx+'px',height:st.h*sy+'px',background:st.color});Object.assign(ta.style,{color:st.tc,...fontCss(st.font),fontSize:st.size*sy+'px',transform:'scaleY('+(st.textHeight/100)+')',transformOrigin:'top left'});ta.style.padding='0';let previewSize=st.size;while(!st.manualSize&&previewSize>1&&(ta.scrollHeight>ta.clientHeight+1||ta.scrollWidth>ta.clientWidth+1)){previewSize=Math.max(1,previewSize-.5);ta.style.fontSize=previewSize*sy+'px'}st.fitSize=previewSize;sizeLabel.textContent=previewSize<st.size?st.size.toFixed(1)+' pt (fit '+previewSize.toFixed(1)+' pt)':st.size.toFixed(1)+' pt';dims();box.querySelectorAll('.boxHandle').forEach(h=>h.remove());const dirs=['nw','n','ne','e','se','s','sw','w'],spec={nw:[-1,1],n:[0,1],ne:[1,1],e:[1,0],se:[1,-1],s:[0,-1],sw:[-1,-1],w:[-1,0]};for(const dir of dirs){const h=document.createElement('button');h.type='button';h.className='boxHandle '+dir;h.title='Resize '+dir;h.onmousedown=e=>{e.preventDefault();e.stopPropagation();const[hx,hy]=spec[dir],sx=e.clientX,sy=e.clientY,ox=st.x,oy=st.y,ow=st.w,oh=st.h;track(v=>{const rr=ov.getBoundingClientRect(),dx=(v.clientX-sx)*pg.w/rr.width,dy=-(v.clientY-sy)*pg.h/rr.height;if(hx<0){st.w=Math.max(2,ow-dx);st.x=ox+ow-st.w}else if(hx>0)st.w=Math.max(2,ow+dx);if(hy>0){st.h=Math.max(2,oh+dy);st.y=oy+st.h-oh}else if(hy<0)st.h=Math.max(2,oh-dy);show()})};box.append(h)}};box.onmousedown=e=>{if(e.target.closest('.boxHandle')||e.target===ta)return;e.preventDefault();e.stopPropagation();const sx=e.clientX,sy=e.clientY,x0=st.x,y0=st.y;track(v=>{st.x=x0+(v.clientX-sx)*pg.w/ov.clientWidth;st.y=y0-(v.clientY-sy)*pg.h/ov.clientHeight;show()})};let drawing=w==null,draw=null,stop=null;const end=()=>{if(draw)document.removeEventListener('mousemove',draw);if(stop)document.removeEventListener('mouseup',stop);box.remove();bar.remove()};no.onclick=async()=>{end();if(moveOnly&&copy.restore){await load(copy.restore,false,dead);if(copy.restoreLast)lastBox=copy.restoreLast}};ok.onclick=async()=>{boxClipboard={...st,text:ta.value};const base=bytes.slice(),fm={Helvetica:StandardFonts.Helvetica,HelveticaBold:StandardFonts.HelveticaBold,HelveticaOblique:StandardFonts.HelveticaOblique,HelveticaBoldOblique:StandardFonts.HelveticaBoldOblique,TimesRoman:StandardFonts.TimesRoman,TimesRomanBold:StandardFonts.TimesRomanBold,TimesRomanItalic:StandardFonts.TimesRomanItalic,TimesRomanBoldItalic:StandardFonts.TimesRomanBoldItalic,Courier:StandardFonts.Courier,CourierBold:StandardFonts.CourierBold,CourierOblique:StandardFonts.CourierOblique,CourierBoldOblique:StandardFonts.CourierBoldOblique};try{const d=await PDFDocument.load(bytes),font=await embedFontAny(d,st.font,fm),q=d.getPages()[p],rect=boxPdfRect(p,st);q.drawRectangle({...rect,color:hex(st.color)});if(st.text.trim()){const nl=String.fromCharCode(10),txt=st.text.replaceAll(String.fromCharCode(13),'').split(nl).map(line=>Array.from(line).filter(ch=>{const c=ch.charCodeAt(0);return c>=32&&c<=255}).join('')).join(nl),pad=0,maxW=Math.max(1,st.w),maxH=Math.max(1,st.h),wrapAt=size=>{const out=[];for(const para of txt.split(nl)){let line='';for(const word of para.trim().split(' ').filter(Boolean)){const candidate=line?line+' '+word:word;if(line&&font.widthOfTextAtSize(candidate,size)>maxW){out.push(line);line=''}if(line)line+=' ';for(const ch of word){if(line&&font.widthOfTextAtSize(line+ch,size)>maxW){out.push(line);line=ch}else line+=ch}}out.push(line)}return out},fits=(size,lines)=>lines.length*size*1.2<=maxH;let fit=st.size,lines=wrapAt(fit);while(!st.manualSize&&fit>1&&!fits(fit,lines)){fit=Math.max(1,fit-.5);lines=wrapAt(fit)}const lineH=fit*1.15,baseline=st.y-font.heightAtSize(fit,{descender:false})+(lines.length-1)*lineH,scaleY=st.textHeight/100,view=pages[p].view,pos=view.convertToPdfPoint(st.x,pg.h-baseline),rot=view.rotation||0,scaleX=rot===90||rot===270,a=scaleX?scaleY:1,d=scaleX?1:scaleY,tx=scaleX?pos[0]*(1-scaleY):0,ty=scaleX?0:pos[1]*(1-scaleY);q.pushOperators(pushGraphicsState(),concatTransformationMatrix(a,0,0,d,tx,ty));q.drawText(lines.join(nl),{x:pos[0],y:pos[1],rotate:degrees(rot),size:fit,font,color:hex(st.tc),maxWidth:maxW,lineHeight:lineH});q.pushOperators(popGraphicsState())}end();await load(new Uint8Array(await d.save()),true,dead);lastBox={base,p,st:{...st,text:ta.value}};say('Cover box and text placed. Undo with Ctrl+Z.')}catch(e){say(e.message,'e')}};show();if(drawing){const firstX=x,firstY=y;draw=ev=>{const r=ov.getBoundingClientRect(),cx=(ev.clientX-r.left)*pg.w/r.width,cy=pg.h-(ev.clientY-r.top)*pg.h/r.height;st.x=Math.min(firstX,cx);st.w=Math.max(2,Math.abs(cx-firstX));st.y=Math.max(firstY,cy);st.h=Math.max(2,Math.abs(cy-firstY));show()};stop=()=>{drawing=false;document.removeEventListener('mousemove',draw);document.removeEventListener('mouseup',stop);boxW.disabled=false;boxH.disabled=false;ta.disabled=false;ta.placeholder='Type text for the box';ta.focus()};document.addEventListener('mousemove',draw);document.addEventListener('mouseup',stop,{once:true})}else{boxW.disabled=false;boxH.disabled=false;ta.disabled=false;ta.placeholder='Type text for the box';ta.focus()}};$('#bImg').onclick=()=>bytes&&$('#fImg').click();$('#fImg').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ placing=(p,x,y)=>imgPlace(f,p,x,y).catch(err=>say(err.message,'e'));document.body.style.cursor='crosshair';say('Click where the image should go (top-left corner). You can then drag it and resize it before placing. The text below will move down to leave room for it.')};
+async function imgPlace(f,p,x,y,opts={}){ // live preview: drag to move, drag the round handle or use the slider to resize, then Place
+ const url=URL.createObjectURL(f),im=new Image();await new Promise((ok,no)=>{im.onload=ok;im.onerror=()=>no(new Error('Could not read image '+f.name));im.src=url});
+ const pg=pages[p],asp=im.height/im.width,st={x,y,w:opts.w?Math.min(opts.w,pg.w*.95):Math.min(180,pg.w*.5)},ov=document.querySelectorAll('.ov')[p];
+ const box=document.createElement('div');box.className='imgp';box.innerHTML=`<img src="${url}" alt=""><i title="Drag to resize"></i>`;ov.append(box);
+ const bar=document.createElement('div');bar.id='imgBar';bar.innerHTML='<b>Image size</b><input type="range" min="5" max="100"><span></span><button class="p" type="button">Place image</button><button type="button">Cancel</button>';document.body.append(bar);
+ const rng=bar.querySelector('input'),lab=bar.querySelector('span'),[ok,no]=bar.querySelectorAll('button');
+ const show=()=>{st.w=Math.max(12,Math.min(st.w,pg.w));st.x=Math.max(0,Math.min(st.x,pg.w-st.w));st.y=Math.max(st.w*asp,Math.min(st.y,pg.h)); // keep it on the page
+  Object.assign(box.style,{left:st.x*zoom+'px',top:(pg.h-st.y)*zoom+'px',width:st.w*zoom+'px',height:st.w*asp*zoom+'px'});rng.value=Math.round(st.w/pg.w*100);lab.textContent=Math.round(st.w)+' x '+Math.round(st.w*asp)+' pt'};
+ const track=fn=>{const up=()=>{removeEventListener('mousemove',fn);removeEventListener('mouseup',up)};addEventListener('mousemove',fn);addEventListener('mouseup',up)};
+ box.onmousedown=e=>{e.preventDefault();e.stopPropagation();const sx=e.clientX,sy=e.clientY,ox=st.x,oy=st.y;track(ev=>{st.x=ox+(ev.clientX-sx)/zoom;st.y=oy-(ev.clientY-sy)/zoom;show()})};
+ box.onclick=e=>e.stopPropagation();
+ box.querySelector('i').onmousedown=e=>{e.preventDefault();e.stopPropagation();const sx=e.clientX,ow=st.w;track(ev=>{st.w=ow+(ev.clientX-sx)/zoom;show()})};
+ rng.oninput=()=>{st.w=pg.w*rng.value/100;show()};
+ const end=()=>{box.remove();bar.remove();URL.revokeObjectURL(url)};no.onclick=()=>{end();if(opts.onCancel)opts.onCancel()};
+ ok.onclick=async()=>{try{const doc=await PDFDocument.load(bytes),b=await readBytes(f),e=f.type=='image/png'?await doc.embedPng(b):await doc.embedJpg(b);
+  const nd=await placeWithGap(doc,p,e,st,asp);end();await load(new Uint8Array(await doc.save()),true,nd||dead)}catch(err){say(err.message,'e')}};
+ show()}
+
+/* ---------- add image WITH room made for it ----------
+   The image is not stamped on top of the text: everything below it (text and images) moves down by the image height,
+   so a blank slot is left for the image. Header and footer stay where they are. If the moved content no longer fits above
+   the footer, the extra lines continue at the top of a new page (same frame). */
+async function imgRects(p){ // boxes of the VISIBLE parts of the images on a page (PDF points), read from the page's drawing operators
+ // pieces of other pages that were pasted in are clipped to their frame and a white box drawn after an image hides it: both are respected,
+ // so an image that was moved or erased is not reported at its old place
+ const pg=await pdfDoc.getPage(p+1),ol=await pg.getOperatorList(),O=pdfjsLib.OPS,imgs=[],cov=[],stk=[],FILL=[O.fill,O.eoFill,O.fillStroke,O.eoFillStroke,O.closeFillStroke,O.closeEOFillStroke];let m=[1,0,0,1,0,0],clip=null,fill=null,path=null;
+ const mul=(a,b)=>[a[0]*b[0]+a[1]*b[2],a[0]*b[1]+a[1]*b[3],a[2]*b[0]+a[3]*b[2],a[2]*b[1]+a[3]*b[3],a[4]*b[0]+a[5]*b[2]+b[4],a[4]*b[1]+a[5]*b[3]+b[5]];
+ const isc=(a,b)=>!a?b:!b?a:{x0:Math.max(a.x0,b.x0),x1:Math.min(a.x1,b.x1),y0:Math.max(a.y0,b.y0),y1:Math.min(a.y1,b.y1)};
+ const bb=(mm,x0,y0,x1,y1)=>{const xs=[],ys=[];for(const[x,y]of[[x0,y0],[x1,y0],[x0,y1],[x1,y1]]){xs.push(x*mm[0]+y*mm[2]+mm[4]);ys.push(x*mm[1]+y*mm[3]+mm[5])}return{x0:Math.min(...xs),x1:Math.max(...xs),y0:Math.min(...ys),y1:Math.max(...ys)}};
+ ol.fnArray.forEach((fn,i)=>{const a=ol.argsArray[i];
+  if(fn==O.save)stk.push({m,clip,fill});else if(fn==O.restore){if(stk.length)({m,clip,fill}=stk.pop())}
+  else if(fn==O.transform)m=mul(a,m);
+  else if(fn==O.paintFormXObjectBegin){stk.push({m,clip,fill});if(a&&a[0])m=mul(a[0],m);if(a&&a[1])clip=isc(clip,bb(m,a[1][0],a[1][1],a[1][2],a[1][3]))}else if(fn==O.paintFormXObjectEnd){if(stk.length)({m,clip,fill}=stk.pop())}
+  else if(fn==O.setFillRGBColor)fill=[a[0],a[1],a[2]];
+  else if(fn==O.constructPath){path=null;const ops=a[0],c=a[1];
+   if(ops.every(o=>o==O.moveTo||o==O.lineTo||o==O.closePath||o==O.rectangle)){const xs=new Set(),ys=new Set();let ci=0;
+    for(const o of ops){if(o==O.moveTo||o==O.lineTo){xs.add(c[ci]);ys.add(c[ci+1]);ci+=2}else if(o==O.rectangle){xs.add(c[ci]);xs.add(c[ci]+c[ci+2]);ys.add(c[ci+1]);ys.add(c[ci+1]+c[ci+3]);ci+=4}}
+    if(xs.size==2&&ys.size==2)path=bb(m,Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys))}}
+  else if(fn==O.clip||fn==O.eoClip){if(path)clip=isc(clip,path);path=null}
+  else if(FILL.includes(fn)){if(path&&fill&&fill[0]>=250&&fill[1]>=250&&fill[2]>=250){const r=isc(clip,path);if(r&&r.x1>r.x0&&r.y1>r.y0)cov.push({i,r})}path=null}
+  else if(fn==O.endPath||fn==O.stroke||fn==O.closeStroke)path=null;
+  else if(fn==O.paintImageXObject||fn==O.paintInlineImageXObject||fn==O.paintImageMaskXObject){const r=isc(clip,bb(m,0,0,1,1));if(r&&r.x1>r.x0&&r.y1>r.y0)imgs.push({i,r})}});
+ const out=[];
+ for(const g of imgs){let ps=[g.r];
+  for(const c of cov){if(c.i<g.i)continue;const nx=[];
+   for(const r of ps){if(Math.min(r.x1,c.r.x1)<=Math.max(r.x0,c.r.x0)||Math.min(r.y1,c.r.y1)<=Math.max(r.y0,c.r.y0)){nx.push(r);continue}
+    const fw=c.r.x0<=r.x0+1.5&&c.r.x1>=r.x1-1.5,fh=c.r.y0<=r.y0+1.5&&c.r.y1>=r.y1-1.5;
+    if(fw&&fh)continue;
+    if(fw){if(c.r.y0>r.y0)nx.push({...r,y1:c.r.y0});if(c.r.y1<r.y1)nx.push({...r,y0:c.r.y1})}
+    else if(fh){if(c.r.x0>r.x0)nx.push({...r,x1:c.r.x0});if(c.r.x1<r.x1)nx.push({...r,x0:c.r.x1})}
+    else nx.push(r)}
+   ps=nx}
+  out.push(...ps)}
+ return out.filter(r=>r.x1-r.x0>4&&r.y1-r.y0>4)}
+async function placeWithGap(doc,p,e,st,asp){ // returns the new 'dead' map, or null when the image was simply drawn
+ const pgs=doc.getPages(),W=pages[p].w,H=pages[p].h,iw=st.w,ih=st.w*asp,PAD=6,dy=ih+2*PAD;
+ const plain=()=>{pgs[p].drawImage(e,{x:st.x,y:st.y-ih,width:iw,height:ih});return null};
+ const its=items.filter(i=>i.p==p),bx=[...its.map(i=>({x0:i.x,x1:i.x+i.w,y0:i.y-.22*i.h,y1:i.y+.8*i.h,t:i})),...(await imgRects(p)).map(r=>({...r,t:null}))];
+ if(!bx.length)return plain();
+ // header = a block at the very top, footer = a block at the very bottom, each separated from the body by a clear gap
+ const up=[...bx].sort((a,b)=>b.y1-a.y1),dn=[...bx].sort((a,b)=>a.y0-b.y0);let T=up[0].y1+2,B=Math.max(0,Math.min(36,dn[0].y0-2));
+ for(let k=1;k<up.length;k++)if(up[k-1].y0-up[k].y1>=22){if(up[k-1].y0>H*.85)T=up[k].y1+2;break}
+ for(let k=1;k<dn.length;k++)if(dn[k].y0-dn[k-1].y1>=22){if(dn[k-1].y1<H*.12)B=Math.max(...dn.slice(0,k).map(b=>b.y1))+6;break}
+ {const f=await hfBounds(p,bx);if(f){T=f.T;B=f.B}} const body=bx.filter(b=>b.y1<=T&&b.y0>=B-1);if(!body.length)return plain();
+ const L=Math.max(0,Math.min(...body.map(b=>b.x0))-3),R=Math.min(W,Math.max(...body.map(b=>b.x1))+3);
+ let yc=Math.min(st.y,T); // the cut line: content below it moves down; never cut through a line of text or an image
+ for(let k=0;k<4;k++){const c=body.filter(b=>b.y0<yc&&b.y1>yc);if(!c.length)break;yc=Math.max(...c.map(b=>b.y1))+1.5}
+ const reg=body.filter(b=>b.y1<=yc+.5);if(!reg.length)return plain();
+ const d=dy-(yc-Math.max(...reg.map(b=>b.y1))); // blank space already available under the cut counts
+ if(d<=.5)return plain();
+ const lowY=Math.min(...reg.map(b=>b.y0)),bottom=Math.max(B,lowY-3),spill=lowY-d<B;
+ let S=bottom; // top of the part that has to continue on a new page
+ if(spill){S=B+d;for(let k=0;k<4;k++){const c=body.filter(b=>b.y0<S&&b.y1>S);if(!c.length)break;S=Math.max(...c.map(b=>b.y1))+1.5}S=Math.min(S,yc);
+  if(S-bottom>T-B-4){say('The image is taller than a page body, so it was placed without moving the text.','e');return plain()}}
+ const regItems=reg.filter(b=>b.t).map(b=>b.t),fitted=new Set(reg.filter(b=>b.t&&b.y0>=S-.5).map(b=>b.t)),spillSet=new Set(regItems.filter(i=>!fitted.has(i)));
+ const[cp]=await doc.copyPages(doc,[p]),cl=spill?(await doc.copyPages(doc,[p]))[0]:null; // pristine copies, made before anything is drawn
+ const emb1=S<yc-.5?await doc.embedPage(cp,{left:L,right:R,bottom:S,top:yc}):null,emb2=spill?await doc.embedPage(cp,{left:L,right:R,bottom,top:S}):null;
+ const pg=pgs[p],white=rgb(1,1,1);
+ pg.drawRectangle({x:L,y:B,width:R-L,height:yc-B,color:white});
+ if(emb1)pg.drawPage(emb1,{x:L,y:S-d});
+ pg.drawImage(e,{x:st.x,y:yc-PAD-ih,width:iw,height:ih});
+ if(spill){doc.insertPage(p+1,cl);const np=doc.getPage(p+1);np.drawRectangle({x:L,y:B,width:R-L,height:T-B,color:white});if(emb2)np.drawPage(emb2,{x:L,y:bottom+(T-S)})}
+ // keep the app's list of hidden text pieces in step with what was drawn
+ const nd={};for(const k in dead){const[q,...r]=k.split('|'),n=+q,rest=r.join('|');nd[(spill&&n>p?n+1:n)+'|'+rest]=dead[k];if(spill&&n==p)nd[(p+1)+'|'+rest]=dead[k]}nd[GH]=[];for(const e of ghList(dead)){nd[GH].push({...e,p:spill&&e.p>p?e.p+1:e.p});if(spill&&e.p==p)nd[GH].push({...e,p:p+1})}const gp=ghostsOf(p);
+ const add=(pp,i,dx,dyy)=>{const k=kk(pp,i.str,i.x+dx,i.y+dyy);nd[k]=(nd[k]||0)+1},rawP=raw.filter(r=>r.p==p);
+ regItems.forEach(i=>add(p,i,0,0));                                   // old places are covered
+ if(emb1){rawP.forEach(r=>{if(!fitted.has(r))hideAt(nd,p,r,0,-d)});gp.forEach(g=>hideAt(nd,p,g,0,-d))}         // the pasted piece also carries copies of text outside it: hide those
+ if(spill){body.filter(b=>b.t).forEach(b=>add(p+1,b.t,0,0));         // body text of the copied page is covered, header/footer stay
+  rawP.forEach(r=>{if(!spillSet.has(r))hideAt(nd,p+1,r,0,T-S)});gp.forEach(g=>hideAt(nd,p+1,g,0,T-S))}
+ say(spill?'Image placed. The text below moved down to make room and the lines that no longer fit continue on a new page.':'Image placed. The text below moved down to make room for it.');
+ return nd}
+/* ---------- Snip & move ----------
+   A separate toolbar button (it does not touch Add image). The user drags a box on the page; the app captures that area like a snipping tool,
+   removes it from the page (the content below it moves up, and the first lines of each following page flow up to fill the freed space),
+   and then the captured picture is placed anywhere with the same click / drag / resize / "Place image" steps as Add image. */
+const GH=Symbol('ghosts'),ghList=d=>d[GH]||[]; // exact positions of hidden text pieces that sit outside the page (the viewer cannot list them, but they travel with every pasted copy of the page)
+function ghostsOf(q){const have={};raw.forEach(r=>{if(r.p==q){const k=kk(q,r.str,r.x,r.y);have[k]=(have[k]||0)+1}});
+ return ghList(dead).filter(e=>e.p==q).filter(e=>{const k=kk(q,e.str,e.x,e.y);if(have[k]>0){have[k]--;return false}return true})}
+function hideAt(nd,dest,e,dx,dy){const x=e.x+dx,y=e.y+dy,k=kk(dest,e.str,x,y);nd[k]=(nd[k]||0)+1;(nd[GH]||(nd[GH]=[])).push({p:dest,str:e.str,x,y})}
+async function hfBounds(p,bx){ // header/footer found by comparing pages: same text (digits ignored) or same picture at the same place on another page. null when nothing repeats
+ if(pages.length<2)return null;const norm=t=>t.str.length<=14?t.str.replace(/\d+/g,'#'):t.str,H=pages[p].h,fur=new Set();
+ for(let q=0;q<pages.length;q++){if(q==p)continue;const oi=await imgRects(q),ot=items.filter(i=>i.p==q);
+  for(const b of bx){if(fur.has(b))continue;
+   if(b.t?ot.some(o=>norm(o)==norm(b.t)&&Math.abs(o.y-b.t.y)<1.5&&Math.abs(o.x-b.t.x)<8):oi.some(o=>Math.abs(o.y0-b.y0)<2&&Math.abs(o.y1-b.y1)<2&&Math.abs(o.x0-b.x0)<2&&Math.abs(o.x1-b.x1)<2))fur.add(b)}}
+ const foot=[...fur].filter(b=>b.y1<H/2),rest=bx.filter(b=>!fur.has(b));if(!fur.size||!rest.length)return null;
+ return{T:Math.max(...rest.map(b=>b.y1))+2,B:foot.length?Math.max(...foot.map(b=>b.y1))+6:Math.max(0,Math.min(36,Math.min(...rest.map(b=>b.y0))-2))}}
+async function bodyOf(p){ // the body of a page (text + images between header and footer), same detection that Add image uses
+ const W=pages[p].w,H=pages[p].h,its=items.filter(i=>i.p==p),bx=[...its.map(i=>({x0:i.x,x1:i.x+i.w,y0:i.y-.22*i.h,y1:i.y+.8*i.h,t:i})),...(await imgRects(p)).map(r=>({...r,t:null}))];
+ if(!bx.length)return null;
+ const up=[...bx].sort((a,b)=>b.y1-a.y1),dn=[...bx].sort((a,b)=>a.y0-b.y0);let T=up[0].y1+2,B=Math.max(0,Math.min(36,dn[0].y0-2));
+ for(let k=1;k<up.length;k++)if(up[k-1].y0-up[k].y1>=22){if(up[k-1].y0>H*.85)T=up[k].y1+2;break}
+ for(let k=1;k<dn.length;k++)if(dn[k].y0-dn[k-1].y1>=22){if(dn[k-1].y1<H*.12)B=Math.max(...dn.slice(0,k).map(b=>b.y1))+6;break}
+ {const f=await hfBounds(p,bx);if(f){T=f.T;B=f.B}}
+ const body=bx.filter(b=>b.y1<=T&&b.y0>=B-1);if(!body.length)return null;
+ return{W,H,T,B,L:Math.max(0,Math.min(...body.map(b=>b.x0))-3),R:Math.min(W,Math.max(...body.map(b=>b.x1))+3),body}}
+function snipRows(boxes){ // rows of a page body: boxes that overlap vertically belong to one row (a line of text, a picture)
+ const s=[...boxes].sort((a,b)=>b.y1-a.y1),out=[];
+ for(const b of s){const c=out[out.length-1];if(c&&b.y1>c.y0+.01){c.y0=Math.min(c.y0,b.y0);c.boxes.push(b)}else out.push({y1:b.y1,y0:b.y0,boxes:[b]})}
+ return out}
+async function snipCut(doc,p,B0){ // wipes the box from page p inside 'doc' and closes the gap; returns what to capture and the new 'dead' map
+ const pgs=doc.getPages(),white=rgb(1,1,1),n=pages.length,GAP=4,PADB=20,tol=8,nd={...dead};nd[GH]=[...ghList(dead)];
+ const add=(q,r,dx,dy)=>{const k=kk(q,r.str,r.x+dx,r.y+dy);nd[k]=(nd[k]||0)+1};
+ const bx0=B0.x,bx1=B0.x+B0.w,by1=B0.top,by0=B0.top-B0.h,res={cap:{x0:bx0,x1:bx1,y0:by0,y1:by1},nd,reflow:false,dropped:false,note:''};
+ const plain=note=>{ // only the box is wiped; nothing moves
+  items.filter(i=>i.p==p&&i.x<bx1&&i.x+i.w>bx0&&i.y<by1&&i.y+i.h>by0).forEach(i=>{pgs[p].drawRectangle({x:i.x-1,y:i.y-i.h*.25,width:i.w+2,height:i.h*1.25,color:white});add(p,i,0,0)});
+  pgs[p].drawRectangle({x:bx0,y:by0,width:B0.w,height:B0.h,color:white});res.note=note;return res};
+ const info=await bodyOf(p);if(!info)return plain('The page body could not be analysed, so only the box was wiped.');
+ const{T,B,L,R,body}=info;let yu=Math.min(by1,T),yl=Math.max(by0,B);
+ if(yu-yl<4)return plain('The box is outside the page body, so only the box was wiped.');
+ for(let k=0;k<8;k++){let ch=false; // the removed band must never cut through a line of text
+  for(const b of body){
+   if(b.y1>yu+.01&&b.y0<yu-.01){if(b.t){yu=Math.max(yl,b.y0-.3);ch=true}else if(b.y1-yu<=tol){yu=b.y1;ch=true}else if(yu-b.y0<=tol){yu=b.y0-.3;ch=true}}
+   if(b.y1>yl+.01&&b.y0<yl-.01){if(b.t){yl=Math.min(yu,b.y1+.3);ch=true}else if(yl-b.y0<=tol){yl=b.y0;ch=true}else if(b.y1-yl<=tol){yl=b.y1+.3;ch=true}}}
+  if(!ch)break}
+ if(yu-yl<4)return plain('The box only touches text lines, so only the box was wiped.');
+ const inBand=body.filter(b=>b.y0<yu-.01&&b.y1>yl+.01),tolX=Math.max(8,.04*(R-L));let cx0=bx0,cx1=bx1;
+ if(!inBand.length)return plain('Nothing the app can move was found inside the box, so only the box was wiped.');
+ for(const b of inBand){if(b.x0<bx0-tolX||b.x1>bx1+tolX)return plain('Something sits beside the box on the same rows, so the page layout was left as it is and only the box was wiped.');cx0=Math.min(cx0,b.x0);cx1=Math.max(cx1,b.x1)}
+ res.cap={x0:Math.max(0,cx0),x1:Math.min(info.W,cx1),y0:Math.max(0,Math.min(by0,yl)),y1:Math.min(info.H,Math.max(by1,yu))};
+ const d=yu-yl,lows=[];for(const b of body){if(b.y1>yu+.01)lows.push(Math.max(b.y0,yu));if(b.y0<yl-.01)lows.push(b.y0+d)}
+ const topOf=inf=>Math.max(...inf.body.map(b=>b.y1));
+ // plan: which first rows of the following pages flow up, and how far the rest of those pages moves up
+ let cbot=lows.length?Math.min(...lows):topOf(info)+GAP,curB=B,dest=p,destTop;const steps=[];
+ for(let q=p+1;q<n;q++){const iq=await bodyOf(q);if(!iq)break;
+  const cl=snipRows(iq.body),topQ=cl[0].y1;let k=-1;
+  for(let j=0;j<cl.length;j++){if(topQ-cl[j].y0+GAP<=cbot-(curB+PADB)+.01)k=j;else break}
+  if(k<0)break;
+  const st={q,iq,cl,k,topQ,dest,destTop:cbot-GAP,s:null};steps.push(st);
+  if(k+1<cl.length){st.s=topQ-cl[k+1].y1;cbot=Math.min(...cl.slice(k+1).map(c=>c.y0))+st.s}else cbot=topQ+GAP;
+  curB=iq.B;dest=q}
+ const cps={};for(const q of [p,...steps.map(s=>s.q)])cps[q]=(await doc.copyPages(doc,[q]))[0]; // pristine copies, made before anything is drawn
+ const last=steps.length?steps[steps.length-1]:null,drop=last&&last.q==n-1&&last.s==null&&n>1?last.q:-1;
+ // page p: wipe the band and everything under it, put the part that was under the band back, higher up by the band height
+ const pg=pgs[p];pg.drawRectangle({x:L,y:B,width:R-L,height:yu-B,color:white});
+ body.filter(b=>b.t&&b.y1<=yu+.01).forEach(b=>add(p,b.t,0,0));
+ if(body.some(b=>b.y0<yl-.01)){const emb=await doc.embedPage(cps[p],{left:L,right:R,bottom:B,top:yl});pg.drawPage(emb,{x:L,y:B+d});
+  const ins=new Set(body.filter(b=>b.t&&b.y1<=yl+.01).map(b=>b.t));raw.filter(r=>r.p==p&&!ins.has(r)).forEach(r=>hideAt(nd,p,r,0,d));ghostsOf(p).forEach(g=>hideAt(nd,p,g,0,d))}
+ for(const st of steps){const{q,iq,cl,k}=st,dp=pgs[st.dest];
+  // the first rows of page q move onto the page above, under its last line
+  const cb=k+1<cl.length?(cl[k].y0+cl[k+1].y1)/2:Math.max(iq.B,cl[k].y0-1),emb=await doc.embedPage(cps[q],{left:iq.L,right:iq.R,bottom:cb,top:iq.T}),oy=st.destTop-st.topQ;
+  dp.drawPage(emb,{x:iq.L,y:cb+oy});{const ins=new Set(cl.slice(0,k+1).flatMap(c=>c.boxes.filter(b=>b.t).map(b=>b.t)));raw.filter(r=>r.p==q&&!ins.has(r)).forEach(r=>hideAt(nd,st.dest,r,0,oy));ghostsOf(q).forEach(g=>hideAt(nd,st.dest,g,0,oy))}
+  // the rest of page q moves up to the top of the page body
+  if(q!=drop){const pq=pgs[q];pq.drawRectangle({x:iq.L,y:iq.B,width:iq.R-iq.L,height:iq.T-iq.B,color:white});iq.body.filter(b=>b.t).forEach(b=>add(q,b.t,0,0));
+   if(st.s!=null){const cm=(cl[k].y0+cl[k+1].y1)/2,emb=await doc.embedPage(cps[q],{left:iq.L,right:iq.R,bottom:iq.B,top:cm});pq.drawPage(emb,{x:iq.L,y:iq.B+st.s});
+    const ins=new Set(cl.slice(k+1).flatMap(c=>c.boxes.filter(b=>b.t).map(b=>b.t)));raw.filter(r=>r.p==q&&!ins.has(r)).forEach(r=>hideAt(nd,q,r,0,st.s));ghostsOf(q).forEach(g=>hideAt(nd,q,g,0,st.s))}}}
+ if(drop>=0){doc.removePage(drop);for(const key of Object.keys(nd))if(+key.split('|')[0]==drop)delete nd[key];nd[GH]=nd[GH].filter(e=>e.p!=drop);res.dropped=true}
+ res.reflow=true;res.pagesMoved=steps.length;return res}
+async function snipCapture(p,c){ // picture of the box, taken from what is on screen now (before the page changes)
+ const page=await pdfDoc.getPage(p+1),w=Math.max(1,c.x1-c.x0),h=Math.max(1,c.y1-c.y0),sc=Math.max(2,Math.min(5,3200/Math.max(w,h))),
+  v=page.getViewport({scale:sc,offsetX:-c.x0*sc,offsetY:-(pages[p].h-c.y1)*sc}),cv=document.createElement('canvas');cv.width=Math.max(1,Math.ceil(w*sc));cv.height=Math.max(1,Math.ceil(h*sc));
+ const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);await page.render({canvasContext:x,viewport:v}).promise;
+ const blob=await new Promise(ok=>cv.toBlob(ok,'image/png'));cv.width=0;cv.height=0;if(!blob)throw new Error('Could not capture the box.');return{blob,w,h}}
+let snipCb=null,snipBusy=false;
+const snipOff=()=>{if(snipCb&&placing===snipCb){placing=null;placingDrag=false;document.body.style.cursor=''}snipCb=null;const b=document.getElementById('snipBar');if(b)b.remove()};
+async function snipRun(p,x,top,w,h,copy){
+ if(snipBusy)return;if(w<6||h<6){say('That box is too small. Drag a bigger box around the part you want.','e');return snipArm()}
+ snipBusy=true;
+ try{
+  let r={reflow:false,note:''},cap;
+  if(copy)cap=await snipCapture(p,{x0:x,x1:x+w,y0:top-h,y1:top});
+  else{const doc=await PDFDocument.load(bytes);r=await snipCut(doc,p,{x,top,w,h});cap=await snipCapture(p,r.cap);await load(new Uint8Array(await doc.save()),true,r.nd)}
+  say(copy?'Image copied ('+Math.round(cap.w)+' x '+Math.round(cap.h)+' pt). The original stays where it is.':'Image cut ('+Math.round(cap.w)+' x '+Math.round(cap.h)+' pt). '+(r.reflow?'The content below moved up'+(r.pagesMoved?' and the next page'+(r.pagesMoved>1?'s':'')+' filled the space':'')+(r.dropped?' (the last page became empty, so it was removed).':'.'):r.note));
+  const restore=()=>{snipOff();if(!copy&&hist.length)$('#bUndo').click();say(copy?'Paste cancelled.':'Cancelled: the page is back as it was.')};
+  const f=new File([cap.blob],'snip.png',{type:'image/png'}),bar=document.createElement('div');bar.id='snipBar';
+  bar.innerHTML='<b>'+(copy?'Image copied':'Image cut')+'</b><span>Click on the page where it should go (top-left corner).</span><button type="button">Cancel'+(copy?'':' &amp; restore page')+'</button>';bar.querySelector('button').onclick=restore;document.body.append(bar);
+  snipCb=(p2,x2,y2)=>{snipCb=null;bar.remove();imgPlace(f,p2,x2,y2,{w:cap.w,onCancel:restore}).catch(err=>say(err.message,'e'))};
+  placing=snipCb;placingDrag=false;document.body.style.cursor='crosshair'}
+ catch(err){say(err.message||String(err),'e')}finally{snipBusy=false}}
+let pickOn=false,pickSel=null;
+function pickOff(){pickOn=false;pickSel=null;document.querySelectorAll('.imgsel').forEach(e=>e.remove());const b=document.getElementById('snipBar');if(b&&b.dataset.pick)b.remove()}
+async function snipArm(){ // step 1: every image on the pages becomes clickable
+ snipOff();pickOff();pickOn=true;say('Click the image you want to cut or copy. Esc cancels.');
+ const ovs=document.querySelectorAll('.ov');
+ for(let p=0;p<pages.length;p++){for(const r of await imgRects(p)){const d=document.createElement('div');d.className='imgsel';
+  Object.assign(d.style,{left:r.x0*zoom+'px',top:(pages[p].h-r.y1)*zoom+'px',width:(r.x1-r.x0)*zoom+'px',height:(r.y1-r.y0)*zoom+'px'});
+  d.onmousedown=e=>{e.preventDefault();e.stopPropagation();pickChoose(p,r,d)};if(ovs[p])ovs[p].append(d)}}
+ if(!document.querySelector('.imgsel')){say('No image was found on these pages.','e');pickOff()}}
+function pickChoose(p,r,d){document.querySelectorAll('.imgsel').forEach(e=>e.classList.toggle('on',e===d));
+ let bar=document.getElementById('snipBar');if(bar)bar.remove();bar=document.createElement('div');bar.id='snipBar';bar.dataset.pick='1';
+ bar.innerHTML='<b>Image selected</b><button class="p" type="button">Cut (Ctrl+X)</button><button type="button">Copy (Ctrl+C)</button><button type="button">Cancel</button>';
+ const go=copy=>{pickOff();snipRun(p,r.x0,r.y1,r.x1-r.x0,r.y1-r.y0,copy)},[c,cp,no]=bar.querySelectorAll('button');c.onclick=()=>go(false);cp.onclick=()=>go(true);no.onclick=pickOff;document.body.append(bar);pickSel=go}
+$('#bSnip').onclick=()=>{if(bytes)snipArm();else say('Open a PDF first.','e')};
+addEventListener('keydown',e=>{
+ if(pickOn&&e.key=='Escape'){pickOff();say('Cancelled.');return}
+ if(pickOn&&pickSel&&(e.ctrlKey||e.metaKey)&&/^[xc]$/i.test(e.key)&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();pickSel(e.key.toLowerCase()=='c')}
+ if(e.key=='Escape'&&snipCb&&placing===snipCb){const waiting=!!document.getElementById('snipBar');if(waiting)document.querySelector('#snipBar button').click();else{snipOff();say('Cancelled.')}}});
+$('#bPg').onclick=()=>bytes&&pageOp('add',active);
+let findMatches=[],findIndex=-1;
+function updateFind(){const q=$('#findText').value.trim().toLocaleLowerCase();findMatches=q?items.filter(i=>i.str.toLocaleLowerCase().includes(q)):[];if(findIndex>=findMatches.length)findIndex=findMatches.length-1;document.querySelectorAll('#pages .it').forEach(e=>e.classList.remove('hit','current'));findMatches.forEach((m,n)=>{const e=[...document.querySelectorAll('#pg'+m.p+' .it')][items.filter(i=>i.p==m.p).findIndex(i=>i.id==m.id)];if(e){e.classList.add('hit');if(n==findIndex)e.classList.add('current')}});$('#findCount').textContent=findMatches.length?`${Math.max(findIndex,0)+1} of ${findMatches.length}`:'0 matches';if(findMatches.length&&findIndex>=0){const m=findMatches[findIndex];$('#pg'+m.p)?.scrollIntoView({block:'nearest',behavior:'smooth'});active=m.p}}
+function moveFind(d){if(!findMatches.length)return;findIndex=(findIndex+d+findMatches.length)%findMatches.length;updateFind()}
+function openFind(){if(!bytes)return say('Open a PDF before searching.','e');$('#findBar').classList.add('open');$('#findText').focus();updateFind()}
+$('#bFind').onclick=openFind;$('#findClose').onclick=()=>$('#findBar').classList.remove('open');$('#findText').oninput=()=>{findIndex=0;updateFind()};$('#findNext').onclick=()=>moveFind(1);$('#findPrev').onclick=()=>moveFind(-1);
+$('#replaceOne').onclick=async()=>{if(!findMatches.length)return;const m=findMatches[findIndex],q=$('#findText').value.trim(),to=$('#replaceText').value,text=m.str.replace(new RegExp(esc(q),'i'),to);await local([{op:'replaceText',id:m.id,text}],'Replaced current match');findIndex=Math.min(findIndex,findMatches.length-1);updateFind()};
+$('#replaceEvery').onclick=async()=>{const q=$('#findText').value.trim();if(!q)return say('Enter text to find first.','e');if(!findMatches.length)return say('No matching text found.','e');const n=findMatches.length;await local([{op:'replaceAll',find:q,replace:$('#replaceText').value,scope:'all'}],`Replaced ${n} match${n==1?'':'es'}`);findIndex=0;updateFind()};
+const local=async(ops,label)=>{if(window._b)return;window._b=1;try{await run(ops,label)}finally{window._b=0}};
+const eraseSel=(gap=$('#gap').checked)=>{if(!sel.size&&!region)return say('Select text or drag a region first.','e');return local([{op:'erase',ids:[...sel],region,closeGap:gap}],'[local] Erased')};
+const nudge=(dx,dy)=>sel.size?local([{op:'move',ids:[...sel],dx,dy}],'[local] Moved'):say('Select text first.','e');
+$('#bEr').onclick=()=>eraseSel();
+$('#cPick').onchange=e=>sel.size?local([{op:'setColor',ids:[...sel],color:e.target.value}],'[local] Colour changed'):say('Select text first, then pick a colour.','e');
+$('#nL').onclick=()=>nudge(-5,0);$('#nR').onclick=()=>nudge(5,0);$('#nU').onclick=()=>nudge(0,5);$('#nD').onclick=()=>nudge(0,-5);
+const COLORS={red:'#d32f2f',blue:'#1f4fd8',green:'#2e7d32',black:'#000000',white:'#ffffff',orange:'#ef6c00',purple:'#7b1fa2',pink:'#d81b60',gray:'#757575',grey:'#757575',yellow:'#f9a825',navy:'#1f3b73',teal:'#00897b',brown:'#6d4c41'};
+const DEL_RX=/^\s*(?:please\s+)?(?:delete|remove|erase)\s+(?:this|that|it|these|those|the\s+selected|selected|the\s+selection|selection)\b/i;
+const colourOf=t=>{const n=Object.keys(COLORS).join('|'),m=t.match(new RegExp('\\bcolou?r\\b.*\\b('+n+')\\b\\s*[.!]?\\s*$','i'))||t.match(new RegExp('^\\s*(?:please\\s+)?(?:make|turn)\\s+(?:this|it|that|these|the\\s+selected(?:\\s+text)?|selected(?:\\s+text)?)\\s+(?:text\\s+)?('+n+')\\s*[.!]?\\s*$','i'));return m&&COLORS[m[1].toLowerCase()]};
+const dl=(b,n)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b],{type:'application/pdf'}));a.download=n;a.click()};
+$('#bDl').onclick=()=>bytes&&dl(bytes,'document.pdf');
+$('#bFl').onclick=async()=>{if(!bytes)return;const w=say('Flattening pages to images (erased text is removed for good)...'),out=await PDFDocument.create();
+ for(let p=0;p<pages.length;p++){const pg=await pdfDoc.getPage(p+1),v=pg.getViewport({scale:2}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:v}).promise;
+  const im=await out.embedJpg(await (await fetch(c.toDataURL('image/jpeg',.92))).arrayBuffer());out.addPage([pages[p].w,pages[p].h]).drawImage(im,{x:0,y:0,width:pages[p].w,height:pages[p].h})}
+ dl(await out.save(),'document-flattened.pdf');w.remove();say('Downloaded. Flattened PDFs are not editable or searchable.')};
+let shotFiles=[];
+function shotRender(){const L=$('#sList');L.innerHTML='';shotFiles.forEach((f,i)=>{const d=document.createElement('div'),u=URL.createObjectURL(f);d.innerHTML=`<b>${i+1}</b><img src="${u}"><span></span><button type="button">↑</button><button type="button">↓</button><button type="button">✕</button>`;
+ d.querySelector('img').onload=()=>URL.revokeObjectURL(u);d.querySelector('span').textContent=f.name;const b=d.querySelectorAll('button'),sw=j=>{if(j<0||j>=shotFiles.length)return;[shotFiles[i],shotFiles[j]]=[shotFiles[j],shotFiles[i]];shotRender()};
+ b[0].onclick=()=>sw(i-1);b[1].onclick=()=>sw(i+1);b[2].onclick=()=>{shotFiles.splice(i,1);shotRender()};L.appendChild(d)})}
+$('#s2').onchange=e=>{for(const f of e.target.files)if(!shotFiles.some(x=>x.name==f.name&&x.size==f.size))shotFiles.push(f);e.target.value='';shotRender()};
+$('#sAZ').onclick=()=>{shotFiles.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));shotRender()};
+$('#sTm').onclick=()=>{shotFiles.sort((a,b)=>a.lastModified-b.lastModified);shotRender()};
+$('#bShot').onclick=()=>$('#dlg2').style.display='flex';$('#sX').onclick=()=>$('#dlg2').style.display='none';
+$('#sGo').onclick=async()=>{const a=$('#s1').files[0],im=[...shotFiles],c=$('#s3').files[0];if(!a||!im.length)return alert('Choose the lab manual format PDF and at least one screenshot.');$('#dlg2').style.display='none';shotFiles=[];shotRender();
+ say(`Analysing ${Math.min(im.length,SHOT_MAX)} screenshot(s)...`,'u');const w=say('Working...');try{await shotAnalyse(a,im,c,$('#sPn').value,$('#sAuto').checked,$('#sSize').value)}catch(e){say(e.message,'e')}w.remove()};
+
+let coverPdf=null,coverPhoto=null,coverLines=[];
+$('#bCover').onclick=()=>$('#coverDlg').classList.add('open');
+$('#coverClose').onclick=()=>$('#coverDlg').classList.remove('open');
+$('#coverFile').onchange=()=>{coverPdf=null;coverPhoto=null;coverLines=[];$('#coverGenerate').disabled=true;$('#coverDownload').disabled=true;$('#coverCanvas').hidden=true;$('#coverEmpty').hidden=false;$('#coverText').value='';$('#coverStatus').textContent=$('#coverFile').files[0]?.name||'Choose one JPG, PNG or WEBP page photo. Maximum file size: 12 MB.'};
+$('#coverExtract').onclick=async()=>{const file=$('#coverFile').files[0];if(!file)return $('#coverStatus').textContent='Choose a JPG, PNG or WEBP photo first.';if(!['image/jpeg','image/png','image/webp'].includes(file.type))return $('#coverStatus').textContent='Unsupported file type. Choose a JPG, PNG or WEBP image.';if(file.size>12*1024*1024)return $('#coverStatus').textContent='Image is over 12 MB. Choose a smaller photo.';const btn=$('#coverExtract');btn.disabled=true;$('#coverGenerate').disabled=true;$('#coverStatus').textContent='Reading and analyzing this page photo...';let url='';try{const im=new Image();url=URL.createObjectURL(file);im.src=url;await im.decode();if(Math.min(im.naturalWidth,im.naturalHeight)<300)throw new Error('This image is too small to read. Please choose a clearer, higher-resolution photo.');const scale=Math.min(1,2400/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*scale);c.height=Math.round(im.naturalHeight*scale);const ctx=c.getContext('2d');ctx.filter='grayscale(1) contrast(1.15) brightness(1.03)';ctx.drawImage(im,0,0,c.width,c.height);let ocrText='',lines=[];if(window.Tesseract){try{const ocr=await Tesseract.recognize(c,'eng');ocrText=String(ocr.data?.text||'').slice(0,10000);lines=(ocr.data?.lines||[]).filter(l=>l.text?.trim()&&l.bbox)}catch{}}const originalCanvas=document.createElement('canvas');originalCanvas.width=c.width;originalCanvas.height=c.height;const originalCtx=originalCanvas.getContext('2d');originalCtx.fillStyle='#fff';originalCtx.fillRect(0,0,c.width,c.height);originalCtx.drawImage(im,0,0,c.width,c.height);const data=originalCanvas.toDataURL('image/jpeg',.96).split(',')[1];coverPhoto={data,w:c.width,h:c.height,name:file.name};coverLines=lines;let analysis={summary:'',transcription:ocrText};try{analysis=await ai('You analyze a photographed document page. Identify its page type and describe its visible structure. Transcribe only words and numbers that are legible in the image, preserve the original language and spelling, and mark uncertain text as [unclear]. Do not invent or omit text based only on assumptions. Reply only as JSON with keys pageType, summary, transcription.',`Analyze this specific page photo. Use the OCR text as a rough clue, verify it against the image, and transcribe the visible page content. OCR clue:\n${ocrText||'(local OCR unavailable)'}`,[{mime:'image/jpeg',data}],0.1)}catch(e){analysis={summary:'AI analysis was unavailable: '+e.message,transcription:ocrText}}$('#coverText').value=[analysis.pageType?'Page type: '+analysis.pageType:'',analysis.summary||'',analysis.transcription||ocrText||'No text was recognized. The original page image will still be preserved.'].filter(Boolean).join('\n\n');$('#coverGenerate').disabled=false;$('#coverStatus').textContent='Photo analyzed. Reconstruct the PDF to preserve the page exactly and add searchable OCR text.'}catch(e){$('#coverStatus').textContent=(e.message||'Could not read this photo.')+' Choose a clearer image and try again.'}finally{if(url)URL.revokeObjectURL(url);btn.disabled=false}};
+async function drawCoverPdf(){if(!coverPhoto)throw new Error('Analyze a page photo first.');const doc=await PDFDocument.create(),font=await doc.embedFont(StandardFonts.Helvetica),jpg=Uint8Array.from(atob(coverPhoto.data),ch=>ch.charCodeAt(0)),image=await doc.embedJpg(jpg),scale=Math.min(595.28/coverPhoto.w,841.89/coverPhoto.h),W=coverPhoto.w*scale,H=coverPhoto.h*scale,page=doc.addPage([W,H]);page.drawImage(image,{x:0,y:0,width:W,height:H});for(const line of coverLines){const b=line.bbox,x=b.x0/coverPhoto.w*W,y=H-b.y1/coverPhoto.h*H,size=Math.max(4,Math.min(32,(b.y1-b.y0)/coverPhoto.h*H*.82));try{page.drawText(String(line.text).trim(),{x,y,size,font,color:rgb(0,0,0),opacity:0,maxWidth:Math.max(1,(b.x1-b.x0)/coverPhoto.w*W*1.5)})}catch{}}return doc.save()}
+$('#coverGenerate').onclick=async()=>{if(!coverPhoto)return;const btn=$('#coverGenerate');btn.disabled=true;$('#coverStatus').textContent='Building a photo-faithful PDF with searchable text...';try{coverPdf=await drawCoverPdf();const task=pdfjsLib.getDocument({data:coverPdf.slice()}),doc=await task.promise,pg=await doc.getPage(1),v=pg.getViewport({scale:1.15}),canvas=$('#coverCanvas');canvas.width=v.width;canvas.height=v.height;await pg.render({canvasContext:canvas.getContext('2d'),viewport:v}).promise;canvas.hidden=false;$('#coverEmpty').hidden=true;$('#coverDownload').disabled=false;$('#coverStatus').textContent='PDF ready. The page image is preserved and recognized words are searchable.'}catch(e){coverPdf=null;$('#coverStatus').textContent='Could not generate the PDF: '+e.message}finally{btn.disabled=false}};
+$('#coverDownload').onclick=()=>{if(!coverPdf)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([coverPdf],{type:'application/pdf'}));a.download=(coverPhoto?.name||'reconstructed-page').replace(/\.[^.]+$/,'')+'.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+$('#bTpl').onclick=()=>$('#dlg').style.display='flex';$('#tX').onclick=()=>$('#dlg').style.display='none';
+$('#tGo').onclick=async()=>{const a=$('#t1').files[0],b=$('#t2').files[0];if(!a||!b)return alert('Choose both PDFs.');$('#dlg').style.display='none';
+ say('Creating report from template + results...','u');const w=say('Working...');try{await template(a,b,$('#tPn').value)}catch(e){say(e.message,'e')}w.remove()};
+document.onkeydown=e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='f'){e.preventDefault();openFind();return}if(e.key=='Escape'&&$('#findBar').classList.contains('open')){$('#findBar').classList.remove('open');return}if($('#findBar').classList.contains('open')&&e.target==$('#findText')&&e.key=='Enter'){e.preventDefault();moveFind(e.shiftKey?-1:1);return}if(/TEXTAREA|INPUT/.test(e.target.tagName))return;
+ if((e.ctrlKey||e.metaKey)&&e.key=='z'){e.preventDefault();$('#bUndo').click()}else if((e.ctrlKey||e.metaKey)&&e.key=='y'){e.preventDefault();$('#bRedo').click()}
+ else if(e.key=='Delete'||e.key=='Backspace'){e.preventDefault();eraseSel($('#gap').checked&&!e.shiftKey)}
+ else if(sel.size&&/^Arrow/.test(e.key)){e.preventDefault();const s=e.shiftKey?10:2;nudge(e.key=='ArrowLeft'?-s:e.key=='ArrowRight'?s:0,e.key=='ArrowUp'?s:e.key=='ArrowDown'?-s:0)}};
+/* ---------- Word -> PDF (fit & fill) ---------- */
+$('#bDoc').onclick=()=>$('#docDlg').style.display='flex';$('#docX').onclick=()=>$('#docDlg').style.display='none';
+async function runDoc(f,o){
+ $('#docDlg').style.display='none';say('Convert '+f.name+' to PDF','u');const w=say('Reading the document...');
+ try{if(!window.DocxToPdf)throw new Error('The converter files did not load. Check that public/docx2pdf.js exists, then reload.');
+  if(o.exact&&!window.JSZip)throw new Error('public/vendor/jszip.min.js did not load, so the exact Word copy cannot run. Check that the file exists, then reload.');
+  if(!o.exact&&!window.mammoth)throw new Error('The converter files did not load. Check that public/vendor/mammoth.browser.min.js exists, then reload.');
+  o.onProgress=t=>{w.textContent=t};const r=await DocxToPdf.convert(await f.arrayBuffer(),o);
+  await load(r.bytes,true,{});$('#mode').value='edit';
+  let m;
+  if(r.exact)m='Done: '+r.pages+' page'+(r.pages>1?'s':'')+', exact copy of the Word file (page '+Math.round(r.page.w)+' x '+Math.round(r.page.h)+' pt, same margins, picture sizes kept, nothing resized).';
+  else{m='Done: '+r.pages+' page'+(r.pages>1?'s':'')+'. Everything is in the original order.';
+  if(o.fill)m+=' Text and images were resized together (text about '+r.fontPt+' pt)'+(r.blankPt>30?'; about '+Math.round(r.blankPt)+' pt of the last page stays empty because the document simply ends there':' so every page is filled')+'.';}
+  if(r.notes.length)m+=NL+r.notes.join(NL);say(m);
+ }catch(e){say(e.message||String(e),'e')}w.remove();$('#docFile').value='';$('#fDocQ').value=''}
+$('#docGo').onclick=()=>{const f=$('#docFile').files[0];if(!f)return alert('Choose a Word (.docx) file.');
+ const o={name:f.name,paper:$('#docPaper').value,font:$('#docFont').value,fontSize:+$('#docSize').value||11,margin:+$('#docMargin').value||48,fill:$('#docFill').checked,justify:$('#docJust').checked,pageNumbers:$('#docNum').checked};
+ if($('#docExact').checked){o.exact=true;o.paper='Auto';o.pageNumbers=false}
+ runDoc(f,o)};
+/* small top-bar button: pick a .docx and get the exact PDF copy straight away (no dialog) */
+$('#bDocQ').onclick=()=>$('#fDocQ').click();
+$('#fDocQ').onchange=()=>{const f=$('#fDocQ').files[0];if(f)runDoc(f,{name:f.name,exact:true,paper:'Auto',pageNumbers:false})};
+showHome();
+say("Hey! I'm your PDF buddy 👋 Tell me what you want in your own words and I'll help you get it. I can write a new PDF for you, edit one you open, or turn your output screenshots into a finished lab report.\n\nNot sure where to start? Just say what you're trying to do. (Quick edits like 'replace X with Y', Delete, colours and page tools work instantly, even without an AI key.)");
+</script></body></html>

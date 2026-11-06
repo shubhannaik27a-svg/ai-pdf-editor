@@ -1,0 +1,10 @@
+{
+  "name": "ai-pdf-editor",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node free-port.js && node server.js",
+    "start:prod": "node server.js"
+  },
+  "dependencies": { "express": "^4.19.2" }
+}
