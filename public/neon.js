@@ -65,8 +65,8 @@
       '<div class="nChips"><button data-c="gen|Create a report on ">Generate Report</button><button data-c="edit|">Edit PDF</button><button data-c="edit|Rewrite the selected text to sound more professional">Rewrite text</button><button data-c="more">More\u2026</button></div>' +
       '<div class="nIn"><input id="nMsg" placeholder="Tell me what you want\u2026"><button class="p" id="nSend" aria-label="Send">' + ic('send') + '</button></div></div>';
     var bar = document.createElement('div'); bar.id = 'nBar';
-    var B = [['undo', 'Undo', '#bUndo'], ['redo', 'Redo', '#bRedo'], ['find', 'Find / Replace', '#bFind'], ['erase', 'Erase', '#bEr'], ['crop', 'Cut / Copy Image', '#bSnip'], ['text', 'Add Text', '#bTxt'], ['page', 'Add Page', '#bPg'], 0,
-      ['pen', 'Cover + text', '#bBox'], ['image', 'Add Image', '#bImg'], ['move', 'Scroll', 'mode'], ['zin', 'Zoom in', '#bZi'], ['zout', 'Zoom out', '#bZo'], 0, ['chat', 'AI Chat', 'chat'], ['dl', 'Save', '#bDl']];
+    var B = [['undo', 'Undo', '#bUndo'], ['redo', 'Redo', '#bRedo'], ['find', 'Find/Replace', '#bFind'], ['erase', 'Erase', '#bEr'], ['crop', 'Cut/Copy Img', '#bSnip'], ['text', 'Add Text', '#bTxt'], ['page', 'Add Page', '#bPg'], 0,
+      ['pen', 'Cover+text', '#bBox'], ['image', 'Add Image', '#bImg'], ['move', 'Scroll', 'mode'], ['zin', 'Zoom in', '#bZi'], ['zout', 'Zoom out', '#bZo'], 0, ['chat', 'AI Chat', 'chat'], ['dl', 'Save', '#bDl']];
     bar.innerHTML = B.map(function (b) { return b ? '<button data-a="' + b[2] + '"' + (b[2] === 'mode' ? ' id="nMode"' : '') + '>' + ic(b[0]) + '<span>' + b[1] + '</span></button>' : '<i class="sp2"></i>'; }).join('');
     var sh = document.createElement('div'); sh.id = 'nSheet';
     document.body.append(top, home, bar, sh);

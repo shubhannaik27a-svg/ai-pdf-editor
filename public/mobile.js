@@ -195,7 +195,7 @@
     }
     if (tg.closest(SKIP)) return;
     var t = e.touches[0];
-    var inBox = tg.closest('.txtbox,.boxHandle'), inPage = tg.closest('.ov,.pg');
+    var inBox = tg.closest('.txtbox,.boxHandle,.imgp'), inPage = tg.closest('.ov,.pg');
     if (inBox || (inPage && mode === 'edit')) {
       e.preventDefault();
       br = { id: t.identifier, sx: t.clientX, sy: t.clientY, lx: t.clientX, ly: t.clientY, moved: false, target: tg };
