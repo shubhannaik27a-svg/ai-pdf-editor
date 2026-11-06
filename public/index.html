@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><title>AI PDF Editor</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <style>
 :root{--ac:#4f46e5;--ac2:#7c3aed;--bg:#eef0f7;--card:#fff;--bd:#e3e6f0;--tx:#1d2136;--mu:#6b7285;--soft:#f5f6ff}
 *{box-sizing:border-box}
@@ -163,8 +163,8 @@ function boxPdfRect(p,st){const pg=pages[p],v=pg.view,pts=[[st.x,pg.h-st.y],[st.
 async function render(){const box=$('#pages'),th=$('#thumbs');if(!box.onmousemove)box.onmousemove=e=>{const el=e.target.closest('.pg');if(!el)return;const r=el.getBoundingClientRect(),cr=box.getBoundingClientRect();zoomAnchor={p:+el.id.slice(2),fx:(e.clientX-r.left)/r.width,fy:(e.clientY-r.top)/r.height,sx:e.clientX-cr.left,sy:e.clientY-cr.top}};box.innerHTML='';th.innerHTML='';th.style.display='';
  for(let p=0;p<pages.length;p++){const pg=await pdfDoc.getPage(p+1);
   const div=document.createElement('div');div.className='pg';div.id='pg'+p;div.onmouseenter=()=>{active=p;document.querySelectorAll('.th').forEach((t,i)=>t.classList.toggle('a',i==p))};
-  const v=pg.getViewport({scale:zoom}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;div.append(c);
-  await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise;
+  const v=pg.getViewport({scale:zoom}),q=window.__pdfQuality?window.__pdfQuality(v):1,v2=q>1?pg.getViewport({scale:zoom*q}):v,c=document.createElement('canvas');c.width=v2.width;c.height=v2.height;if(q>1){c.style.width=v.width+'px';c.style.height=v.height+'px'}div.append(c);
+  await pg.render({canvasContext:c.getContext('2d'),viewport:v2}).promise;
   const ov=document.createElement('div');ov.className='ov';div.append(ov);box.append(div);
   items.filter(i=>i.p==p).forEach(it=>{const e=document.createElement('div');e.className='it'+(sel.has(it.id)?' s':'');
    Object.assign(e.style,{left:it.x*zoom+'px',top:(pages[p].h-it.y-it.h*.9)*zoom+'px',width:it.w*zoom+'px',height:it.h*1.15*zoom+'px'});
@@ -878,4 +878,4 @@ $('#bDocQ').onclick=()=>$('#fDocQ').click();
 $('#fDocQ').onchange=()=>{const f=$('#fDocQ').files[0];if(f)runDoc(f,{name:f.name,exact:true,paper:'Auto',pageNumbers:false})};
 showHome();
 say("Hey! I'm your PDF buddy 👋 Tell me what you want in your own words and I'll help you get it. I can write a new PDF for you, edit one you open, or turn your output screenshots into a finished lab report.\n\nNot sure where to start? Just say what you're trying to do. (Quick edits like 'replace X with Y', Delete, colours and page tools work instantly, even without an AI key.)");
-</script></body></html>
+</script><script src="mobile.js"></script></body></html>
