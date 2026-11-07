@@ -53,7 +53,8 @@
       '<button id="mChat"><b>\uD83D\uDCAC</b>AI<i class="dot"></i></button>' +
       '<button id="mSave"><b>\u2B07\uFE0F</b>Save</button>');
     var toast = el('div', 'mToast');
-    document.body.append(top, bar, toast);
+    var busy = el('div', 'mBusy', '<i></i><span></span>');
+    document.body.append(top, bar, toast, busy);
 
     var bz = $('#bZo');
     if (bz) {
@@ -96,6 +97,7 @@
   // keep the full-screen chat above the on-screen keyboard (iOS does not resize the page for it)
   window.__fitChat = function () {
     var c = $('#chat'), vv = window.visualViewport; if (!c || !vv || !mq.matches) return;
+    document.documentElement.style.setProperty('--kb', Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) + 'px'); // keyboard height, so bottom panels stay visible
     if (document.body.classList.contains('m-chat')) { c.style.top = vv.offsetTop + 'px'; c.style.height = vv.height + 'px'; c.style.bottom = 'auto'; }
     else { c.style.top = ''; c.style.height = ''; c.style.bottom = ''; }
   };
@@ -206,9 +208,10 @@
       if (br) { fire('mouseup', under(br.lx, br.ly, br.target), { clientX: br.lx, clientY: br.ly }, { buttons: 0 }); }
       br = null; cand = null; return;
     }
-    if (tg.closest(SKIP)) return;
     var t = e.touches[0];
-    var inBox = tg.closest('.txtbox,.boxHandle,.imgp'), inPage = tg.closest('.ov,.pg');
+    var inBox = tg.closest('.txtbox,.boxHandle,.imgp') && !tg.closest('textarea'); // handles are <button>s, so check this before the skip list
+    if (!inBox && tg.closest(SKIP)) return;
+    var inPage = tg.closest('.ov,.pg');
     if (inBox || (inPage && mode === 'edit')) {
       e.preventDefault();
       br = { id: t.identifier, sx: t.clientX, sy: t.clientY, lx: t.clientX, ly: t.clientY, moved: false, target: tg };
@@ -276,9 +279,20 @@
       else if (!c && autoMode && mode === 'edit') setMode('scroll', false);
     }).observe(document.body, { attributes: true, attributeFilter: ['style'] });
 
+    // tool panels (Cover + text, Add image, Cut/Copy) replace the bottom bars while they are open
+    new MutationObserver(function () { document.body.classList.toggle('m-panel', mq.matches && !!document.querySelector('#boxBar,#imgBar,#snipBar')); }).observe(document.body, { childList: true });
+    // long-running work ("Working...", "Reading the document...") shows a spinner pill, even with the chat closed
+    function updateBusy() {
+      var lg = $('#log'), b = $('#mBusy'); if (!lg || !b) return;
+      var last = null;
+      Array.prototype.forEach.call(lg.querySelectorAll('.m'), function (n) { if (!n.classList.contains('u') && /(\.\.\.|\u2026)\s*$/.test((n.textContent || '').trim())) last = n; });
+      b.classList.toggle('show', !!last && mq.matches);
+      if (last) b.querySelector('span').textContent = last.textContent.trim();
+    }
     // messages the app writes to the chat are shown as a toast while the chat is closed
     var log = $('#log');
     if (log) new MutationObserver(function (muts) {
+      updateBusy();
       if (!mq.matches) return;
       muts.forEach(function (m) {
         Array.prototype.forEach.call(m.addedNodes, function (n) {

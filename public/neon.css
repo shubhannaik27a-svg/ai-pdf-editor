@@ -11,9 +11,28 @@ body.m #docDlg label,body.m #dlg label,body.m #dlg2 label,body.m #coverDlg label
 body.m #pages{background:transparent}
 body.m #main{top:var(--nt);bottom:var(--nb)}
 body.m #bar{top:var(--nt)}body.m #mToast{top:calc(var(--nt) + 6px);background:#3b1d8a}
-body.m #imgBar,body.m #snipBar,body.m #boxBar,body.m #findBar{position:fixed;left:6px;right:6px;top:auto;transform:none;bottom:calc(var(--nb) + 6px);max-width:none;flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;max-height:none;padding:8px;justify-content:flex-start;z-index:31}
-body.m #imgBar>*,body.m #snipBar>*,body.m #boxBar>*,body.m #findBar>*{flex:none}
-body.m #imgBar input[type=range],body.m #snipBar input[type=range]{width:150px}
+body.m #findBar{position:fixed;left:6px;right:6px;top:auto;transform:none;bottom:calc(var(--nb) + 6px);max-width:none;flex-wrap:wrap;padding:8px;justify-content:flex-start;z-index:31}
+body.m #findBar>*{flex:1 1 120px;min-width:0}
+/* Cover + text / Add image / Cut-copy panels: wrapped rows (every button reachable), bottom bars hidden meanwhile */
+body.m #boxBar,body.m #imgBar,body.m #snipBar{position:fixed;left:6px;right:6px;top:auto;transform:none;bottom:calc(var(--kb,0px) + 8px + var(--sa));display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:none;max-height:46dvh;overflow-y:auto;overflow-x:hidden;white-space:normal;padding:10px;z-index:31}
+body.m #boxBar>*,body.m #imgBar>*,body.m #snipBar>*{flex:1 1 140px;min-width:0;margin:0}
+body.m #boxBar input[type=range],body.m #imgBar input[type=range],body.m #snipBar input[type=range]{flex:1 1 100%;width:100%}
+body.m #boxBar span,body.m #imgBar span,body.m #snipBar span{flex:0 0 auto}
+body.m #boxHex,body.m #textHex{display:none}
+body.m #boxBar button,body.m #imgBar button,body.m #snipBar button{min-height:44px}
+body.m #boxBar label,body.m #imgBar label,body.m #snipBar label{display:flex;align-items:center;gap:8px;font-size:13px;color:#fff}
+body.m #boxBar label input[type=number]{flex:1;min-width:0;width:auto}
+body.m #boxBar select{flex:1 1 100%;height:44px}
+body.m.m-panel #nBar,body.m.m-panel #nTray{display:none}
+body.m .txtbox .boxHandle{width:18px;height:18px;min-width:18px;min-height:18px}
+/* dialogs (Template + Results, Screenshot, Word): Cancel / action buttons stay reachable while scrolling */
+body.m #dlg>div>p:last-child,body.m #dlg2>div>p:last-child,body.m #docDlg>div>p:last-of-type{position:sticky;bottom:-16px;display:flex;gap:10px;justify-content:flex-end;margin:0;padding:10px 0;background:#140e33;z-index:2}
+body.m #dlg>div button,body.m #dlg2>div button,body.m #docDlg>div button{min-height:46px;padding:0 18px}
+body.m #dlg input[type=file],body.m #dlg2 input[type=file],body.m #docDlg input[type=file]{width:100%;padding:10px;border-radius:12px}
+/* spinner pill for long-running work */
+#mBusy{display:none}
+body.m #mBusy.show{display:flex;position:fixed;left:50%;top:calc(var(--nt) + 8px);transform:translateX(-50%);z-index:29;align-items:center;gap:10px;padding:10px 16px;border-radius:22px;background:#2a1d63;border:1px solid #8b5cf6;color:#fff;font-size:13px;box-shadow:0 8px 28px #0008;max-width:92vw}
+#mBusy i{flex:none;width:16px;height:16px;border:2px solid #ffffff55;border-top-color:#fff;border-radius:50%;animation:mspin .8s linear infinite}@keyframes mspin{to{transform:rotate(360deg)}}
 body.m .imgp,body.m .imgp *{touch-action:none}body.m .imgp i{width:28px;height:28px;right:-14px;bottom:-14px}
 @media(hover:none){.it:hover{background:transparent}}
 
