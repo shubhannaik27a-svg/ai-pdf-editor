@@ -33,6 +33,12 @@
   function el(tag, id, html) { var e = document.createElement(tag); if (id) e.id = id; if (html) e.innerHTML = html; return e; }
 
   function build() {
+    var chatEl = $('#chat');
+    if (chatEl) {
+      var placeChat = function () { var main = $('#main'); if (mq.matches) document.body.appendChild(chatEl); else if (main && chatEl.parentNode !== main) main.appendChild(chatEl); };
+      placeChat();
+      if (mq.addEventListener) mq.addEventListener('change', placeChat);
+    }
     var findBar = $('#findBar');
     if (findBar) document.body.appendChild(findBar); // it lived inside the toolbar, which is now a hidden menu
 
@@ -228,7 +234,12 @@
     } else if (cand) {
       t = Array.prototype.find.call(e.changedTouches, function (x) { return x.identifier === cand.id; });
       if (!t) return;
-      if (!cancelled && Math.hypot(t.clientX - cand.x, t.clientY - cand.y) < 10 && Date.now() - cand.t < 350) tapped(t.clientX, t.clientY, cand.target);
+      if (!cancelled && Math.hypot(t.clientX - cand.x, t.clientY - cand.y) < 10 && Date.now() - cand.t < 350) {
+        e.preventDefault(); // we send the mouse events ourselves, once, so the browser must not
+        var tu = under(t.clientX, t.clientY, cand.target);
+        fire('mousedown', tu, t, { buttons: 1 }); fire('mouseup', tu, t, { buttons: 0 }); fire('click', tu, t, { buttons: 0 });
+        tapped(t.clientX, t.clientY, cand.target);
+      }
       cand = null;
     }
   }
