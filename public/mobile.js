@@ -304,5 +304,6 @@
     var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'neon.css'; document.head.appendChild(l);
     var j = document.createElement('script'); j.src = 'neon.js'; document.body.appendChild(j);
   }
-  if (document.body) { init(); loadNeon(); } else document.addEventListener('DOMContentLoaded', function () { init(); loadNeon(); });
+  function loadVoice() { var v = document.createElement('script'); v.src = 'voice.js'; document.body.appendChild(v); }
+  if (document.body) { init(); loadNeon(); loadVoice(); } else document.addEventListener('DOMContentLoaded', function () { init(); loadNeon(); loadVoice(); });
 })();
