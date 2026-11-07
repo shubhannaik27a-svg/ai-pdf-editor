@@ -14,6 +14,7 @@
     chat: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>',
     send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>', set: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
     star: '<path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/>', cur: '<path d="M3 3l7 17 2.5-7.4L20 10z"/>', move: '<polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/>',
+    plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>', chev: '<polyline points="9 18 15 12 9 6"/>', gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     arr: '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>', dn: '<polyline points="6 9 12 15 18 9"/>', word: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12l1.5 6 2.5-6 2.5 6L16 12"/>',
     crown: '<path d="M2 7l5 5 5-8 5 8 5-5-2 13H4z"/>', lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', fit: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>', th: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>'
   };
@@ -26,23 +27,22 @@
   var NEEDS = '#bFind,#bTxt,#bBox,#bImg,#bSnip,#bPg,#bEr,#bFl,#bDl,#bUndo,#bRedo';
   function go(sel) { closeSheet(); if (sel.split(',').length === 1 && /^(#bFind|#bTxt|#bBox|#bImg|#bSnip|#bPg|#bEr|#bFl|#bDl)$/.test(sel) && !hasPdf()) return toast('Open a PDF first, then use this tool.'); click(sel); }
 
-  /* every feature, used by "See all" and the New menu */
+  /* every feature, used by "See all" and the New menu: [icon, title, text, action] */
   var ALL = [
-    ['folder', 'Open PDF', 'Edit, read, merge and more', '#bOpen'], ['star', 'Create with AI', 'Describe it, AI writes the PDF', 'ai'],
-    ['cam', 'Screenshot \u2192 Report', 'AI drafts your lab report', '#bShot'], ['file', 'Template + Results', 'Pour results into the lab manual format', '#bTpl'],
-    ['word', 'Word \u2192 PDF', 'Convert a Word file (fit & fill)', '#bDoc'], ['word', 'Doc \u2192 PDF (exact copy)', 'Same size, margins and pictures', '#bDocQ'],
+    ['folder', 'Open PDF', 'Edit, read, merge, and more\u2014without Ads.', '#bOpen'], ['star', 'Create with AI', 'Describe it, structure, or get a report in seconds.', 'ai'],
+    ['cam', 'Screenshot \u2192 Report', 'Upload outputs/screenshots, let AI draft them as a full report in your lab format.', '#bShot'], ['file', 'Template + Results', 'Pour your results PDF into the required lab manual format.', '#bTpl'],
+    ['word', 'Word \u2192 PDF', 'Convert Word files to PDF format.', '#bDoc'], ['word', 'Doc \u2192 PDF (exact copy)', 'Same size, margins and pictures', '#bDocQ'],
     ['image', 'Photo to PDF', 'Rebuild a page photo as a searchable PDF', '#bCover'], ['page', 'New blank PDF', 'Start from an empty page', '#bNew'],
     ['pen', 'Cover + text', 'Hide old text, type new text', '#bBox'], ['image', 'Add image', 'Place a picture on a page', '#bImg'],
     ['crop', 'Cut / copy image', 'Move pictures between pages', '#bSnip'], ['text', 'Add text', 'Type anywhere on the page', '#bTxt'],
     ['page', 'Add page', 'Insert a new page', '#bPg'], ['erase', 'Erase selection', 'Remove selected text or area', '#bEr'],
     ['find', 'Find / Replace', 'Search and replace text', '#bFind'], ['undo', 'Undo', '', '#bUndo'], ['redo', 'Redo', '', '#bRedo'],
     ['fit', 'Fit page width', '', '#mFit'], ['th', 'Page thumbnails', '', '#mThumbs'],
-    ['dl', 'Download PDF', 'Save your edited PDF', '#bDl'], ['lock', 'Download flattened (secure)', 'Erased text is removed for good', '#bFl']
+    ['dl', 'Download PDF', 'Download your edited PDF securely.', '#bDl'], ['lock', 'Download flattened (secure)', 'Erased text is removed for good', '#bFl']
   ];
-  var COL = { folder: 'y', star: 'p', cam: 'c', file: 't', word: 'b', dl: 'v', image: 'c', pen: 'b' };
-  function card(f) { return '<button class="nCard" data-a="' + f[3] + '"><span class="bd ' + (COL[f[0]] || 'v') + '">' + ic(f[0]) + '</span><span class="t"><b>' + f[1] + '</b>' + (f[2] ? '<span>' + f[2] + '</span>' : '') + '</span>' + ic('arr') + '</button>'; }
+  var COL = { folder: 'blue', star: 'gold', cam: 'cyan', file: 'teal', word: 'wd', dl: 'vio', image: 'cyan', pen: 'blue' };
+  function card(f, i) { return '<button class="nCard ' + (i % 2 ? 'r' : 'l') + '" data-a="' + f[3] + '"><span class="bd ' + (COL[f[0]] || 'vio') + '">' + (f[0] === 'word' ? '<b>W</b>' : ic(f[0])) + '</span><span class="t"><b>' + f[1] + '</b>' + (f[2] ? '<span>' + f[2] + '</span>' : '') + '</span><i class="go">' + ic('arr') + '</i></button>'; }
   function act(a) { if (a === 'ai') { closeSheet(); ask('gen', '', false); } else go(a); }
-
   function sheet(title, list) {
     var s = $('#nSheet'); s.innerHTML = '<div><h3>' + title + '</h3><div class="nGrid">' + list.map(card).join('') + '</div></div>';
     s.classList.add('open');
@@ -51,40 +51,44 @@
 
   function build() {
     var top = document.createElement('div'); top.id = 'nTop';
-    top.innerHTML = '<svg class="lg" viewBox="0 0 24 24"><defs><linearGradient id="lgG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs><path fill="url(#lgG)" d="M12 1l2.6 8.4L23 12l-8.4 2.6L12 23l-2.6-8.4L1 12l8.4-2.6z"/></svg><div class="tt"><h1>AI <i>PDF</i> Editor</h1><small>Edit \u2022 Convert \u2022 Create \u2022 with AI \u2728</small></div><button class="op" id="nOpen">' + ic('folder') + 'Open PDF</button><button class="gr" id="nSet" aria-label="All tools">' + ic('set') + '</button>';
+    top.innerHTML = '<svg class="lg" viewBox="0 0 24 24"><defs><linearGradient id="lgG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs><path fill="url(#lgG)" d="M12 1l2.6 8.4L23 12l-8.4 2.6L12 23l-2.6-8.4L1 12l8.4-2.6z"/><circle cx="20" cy="20" r="1.6" fill="#c4b5fd"/></svg><div class="tt"><h1>AI <i>PDF</i> Editor</h1><small>Edit \u2022 Convert \u2022 Create \u2022 with AI \u2728</small></div><button class="op" id="nOpen">' + ic('crown') + 'Open PDF</button><button class="gr" id="nSet" aria-label="All tools">' + ic('gear') + '</button>';
+    var art = '<svg class="art" viewBox="0 0 140 130"><ellipse cx="72" cy="78" rx="64" ry="22" fill="none" stroke="#e9d5ff" stroke-width="2" opacity=".8" transform="rotate(-16 72 78)"/><g transform="rotate(10 64 58)"><rect x="34" y="8" width="62" height="82" rx="9" fill="#ede9fe"/><rect x="45" y="24" width="38" height="5" rx="2.5" fill="#8b5cf6"/><rect x="45" y="35" width="30" height="5" rx="2.5" fill="#a78bfa"/><rect x="45" y="46" width="38" height="5" rx="2.5" fill="#a78bfa"/><rect x="45" y="57" width="26" height="5" rx="2.5" fill="#c4b5fd"/></g><rect x="74" y="66" width="46" height="36" rx="11" fill="#5b21b6"/><text x="97" y="92" text-anchor="middle" font-size="23" font-weight="800" fill="#fff" font-family="sans-serif">AI</text><path d="M14 22l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#f0abfc"/><path d="M126 14l1.6 3.6 3.6 1.6-3.6 1.6-1.6 3.6-1.6-3.6-3.6-1.6 3.6-1.6z" fill="#fde68a"/></svg>';
     var home = document.createElement('div'); home.id = 'nHome';
     home.innerHTML =
-      '<div class="nTiles"><button class="nTile" data-a="#bOpen"><span class="bd b">' + ic('pen') + '</span>Edit PDF</button><button class="nTile" data-a="#bBox"><span class="bd p">' + ic('text') + '</span>Cover + text</button><button class="nTile" data-a="#bImg"><span class="bd c">' + ic('image') + '</span>Add image</button><button class="nTile" id="nNew"><span class="bd v">' + ic('page') + '</span>New \u25BE</button></div>' +
+      '<div class="nTiles"><button class="nTile" data-a="#bOpen">' + ic('folder') + '<span>Edit<br>PDF</span></button><button class="nTile" data-a="#bBox">' + ic('pen') + '<span>Cover +<br>text</span></button><button class="nTile" data-a="#bImg">' + ic('image') + '<span>Add<br>image</span></button><button class="nTile nw" id="nNew"><i class="pl">' + ic('plus') + '</i><span>New ' + ic('dn') + '</span></button></div>' +
       '<div class="nHero"><div class="nSl" id="nSl">' +
-      '<div class="s1"><svg class="art" viewBox="0 0 120 120"><ellipse cx="62" cy="70" rx="56" ry="20" fill="none" stroke="#c4b5fd" stroke-width="2" opacity=".7" transform="rotate(-18 62 70)"/><g transform="rotate(12 60 56)"><rect x="30" y="12" width="56" height="74" rx="8" fill="#ede9fe"/><rect x="40" y="26" width="34" height="4" rx="2" fill="#a78bfa"/><rect x="40" y="36" width="28" height="4" rx="2" fill="#c4b5fd"/><rect x="40" y="46" width="34" height="4" rx="2" fill="#c4b5fd"/></g><rect x="62" y="62" width="40" height="30" rx="9" fill="#6d28d9"/><text x="82" y="84" text-anchor="middle" font-size="19" font-weight="800" fill="#fff" font-family="sans-serif">AI</text></svg><h2>Edit, create and report \u2014 all your PDFs in one place</h2><p>Open a PDF, let AI write a new one, or turn your output screenshots into a finished lab report.</p><div class="r"><button class="w" data-a="#bOpen">' + ic('folder') + 'Open a PDF</button><button data-a="ai">' + ic('star') + 'Create with AI</button></div></div>' +
+      '<div class="s1">' + art + '<h2>Edit, create and report \u2014 all your PDFs in one place</h2><p>Open a PDF or let AI write a new one, or turn your output screenshots into a finished lab report.</p><div class="r"><button class="w" data-a="#bOpen">' + ic('folder') + 'Open a PDF ' + ic('arr') + '</button><button data-a="ai">' + ic('star') + 'Create with AI</button></div></div>' +
       '<div><h2>Screenshot \u2192 Report</h2><p>Upload your outputs and AI drafts the report in your lab manual format.</p><div class="r"><button class="w" data-a="#bShot">' + ic('cam') + 'Start</button><button data-a="#bTpl">Template + Results</button></div></div>' +
       '<div><h2>Photo to PDF</h2><p>Turn a photo of any page into a clean, searchable PDF.</p><div class="r"><button class="w" data-a="#bCover">' + ic('image') + 'Photo to PDF</button></div></div>' +
       '<div><h2>Word \u2192 PDF</h2><p>Convert .docx files, as an exact copy or fit and fill.</p><div class="r"><button class="w" data-a="#bDoc">' + ic('word') + 'Word \u2192 PDF</button><button data-a="#bDocQ">Exact copy</button></div></div>' +
-      '</div></div><div class="nDots" id="nDots"><i class="on"></i><i></i><i></i><i></i></div>' +
-      '<div class="nH"><span>\u26A1 Quick Start</span><button id="nAll">See all ' + ic('arr') + '</button></div><div class="nGrid">' + [0, 1, 2, 3, 4, 19].map(function (i) { return card(ALL[i]); }).join('') + '</div>' +
-      '<div class="nAI"><div class="h"><em>\uD83E\uDD16</em>AI Assistant<span class="on">\u25CF Online</span></div><div class="bub">Hey! I\'m your PDF buddy \uD83D\uDC4B Tell me what you want to do \u2014 edit, create, or get a report! I can write a new PDF, edit one you open, or turn your output screenshots into a lab report.</div>' +
-      '<div class="nChips"><button data-c="gen|Create a report on ">Generate Report</button><button data-c="edit|">Edit PDF</button><button data-c="edit|Rewrite the selected text to sound more professional">Rewrite text</button><button data-c="more">More\u2026</button></div>' +
-      '<div class="nIn"><input id="nMsg" placeholder="Tell me what you want\u2026"><button class="p" id="nSend" aria-label="Send">' + ic('send') + '</button></div></div>';
+      '</div><div class="nDots" id="nDots"><i class="on"></i><i></i><i></i><i></i></div></div>' +
+      '<div class="nH"><span><em>\u26A1</em> Quick Start</span><button id="nAll">See all ' + ic('arr') + '</button></div><div class="nGrid">' + [0, 1, 2, 3, 4, 19].map(function (i, k) { return card(ALL[i], k); }).join('') + '</div>' +
+      '<div class="nAI"><div class="h"><span class="av">\uD83E\uDD16<u></u></span><b>AI Assistant</b><span class="on"><u></u>Online</span><button id="nChatGo" aria-label="Open chat">' + ic('chev') + '</button></div><div class="bub">Hey! I\'m your PDF buddy \uD83D\uDC4B Tell me what you want to do \u2014 edit, create, or get a report! I can write a new PDF for you, edit one you open, or turn your output screenshots into a finished lab report.</div>' +
+      '<div class="nChips"><button data-c="gen|Create a report on ">' + ic('file') + 'Generate Report</button><button data-c="edit|">' + ic('pen') + 'Edit PDF</button><button data-c="edit|Summarize this PDF in a short paragraph">' + ic('star') + 'Summarize PDF</button><button data-c="more">More\u2026</button></div>' +
+      '<div class="nIn"><span class="sp">' + ic('star') + '</span><input id="nMsg" placeholder="Tell me what you want\u2026"><button class="p" id="nSend" aria-label="Send">' + ic('send') + '</button></div></div>';
+    var B = [['undo', 'Undo', '#bUndo'], ['redo', 'Redo', '#bRedo'], 0, ['find', 'Find / Replace', '#bFind'], 0, ['erase', 'Erase', '#bEr'], 0, ['crop', 'Cut / Copy Image', '#bSnip'], 0, ['text', 'Add Text', '#bTxt'], 0, ['page', 'Add Page', '#bPg']];
     var bar = document.createElement('div'); bar.id = 'nBar';
-    var B = [['undo', 'Undo', '#bUndo'], ['redo', 'Redo', '#bRedo'], ['find', 'Find/Replace', '#bFind'], ['erase', 'Erase', '#bEr'], ['crop', 'Cut/Copy Img', '#bSnip'], ['text', 'Add Text', '#bTxt'], ['page', 'Add Page', '#bPg'], 0,
-      ['pen', 'Cover+text', '#bBox'], ['image', 'Add Image', '#bImg'], ['move', 'Scroll', 'mode'], ['zin', 'Zoom in', '#bZi'], ['zout', 'Zoom out', '#bZo'], 0, ['chat', 'AI Chat', 'chat'], ['dl', 'Save', '#bDl']];
-    bar.innerHTML = B.map(function (b) { return b ? '<button data-a="' + b[2] + '"' + (b[2] === 'mode' ? ' id="nMode"' : '') + '>' + ic(b[0]) + '<span>' + b[1] + '</span></button>' : '<i class="sp2"></i>'; }).join('');
+    bar.innerHTML = B.map(function (b) { return b ? '<button data-a="' + b[2] + '">' + ic(b[0]) + '<span>' + b[1] + '</span></button>' : '<i class="sp2"></i>'; }).join('');
+    var T = [['pen', 'Cover + text', '#bBox'], ['image', 'Add image', '#bImg'], ['move', 'Scroll', 'mode'], ['zout', 'Zoom out', '#bZo'], ['zin', 'Zoom in', '#bZi'], ['chat', 'AI chat', 'chat'], ['dl', 'Save', '#bDl']];
+    var tray = document.createElement('div'); tray.id = 'nTray';
+    tray.innerHTML = T.map(function (b) { return '<button data-a="' + b[2] + '"' + (b[2] === 'mode' ? ' id="nMode"' : '') + '>' + ic(b[0]) + '<span>' + b[1] + '</span></button>'; }).join('');
     var sh = document.createElement('div'); sh.id = 'nSheet';
-    document.body.append(top, home, bar, sh);
+    document.body.append(top, home, tray, bar, sh);
     var pg = $('#mPage'); if (pg) top.append(pg);
 
     document.body.addEventListener('click', function (e) {
       if (!mq.matches) return;
       if (e.target === sh) return closeSheet();
       var c = e.target.closest('[data-c]');
-      if (c) { var v = c.dataset.c.split('|'); if (v[0] === 'more') return chatOpen(); var x = $('#nMsg'); ask(v[0], v[1] || '', false); return; }
-      var b = e.target.closest('#nTop [data-a],#nHome [data-a],#nBar [data-a],#nSheet [data-a]');
+      if (c) { var v = c.dataset.c.split('|'); if (v[0] === 'more') return chatOpen(); ask(v[0], v[1] || '', false); return; }
+      var b = e.target.closest('#nTop [data-a],#nHome [data-a],#nBar [data-a],#nTray [data-a],#nSheet [data-a]');
       if (!b) return;
       var a = b.dataset.a;
       if (a === 'mode') click('#mMode'); else if (a === 'chat') click('#mChat'); else act(a);
     });
     $('#nOpen').onclick = function () { click('#bOpen'); };
     $('#nSet').onclick = function () { click('#mMenu'); };
+    $('#nChatGo').onclick = function () { chatOpen(); };
     $('#nNew').onclick = function () { sheet('New', [ALL[7], ALL[1], ALL[3], ALL[4], ALL[5], ALL[6], ALL[2]]); };
     $('#nAll').onclick = function () { sheet('All features', ALL); };
     $('#nSend').onclick = function () { var t = $('#nMsg').value.trim(); if (!t) return chatOpen(); ask('gen', t, true); $('#nMsg').value = ''; };

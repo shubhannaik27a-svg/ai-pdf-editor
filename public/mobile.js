@@ -93,14 +93,21 @@
     if (chatHead) chatHead.addEventListener('click', function (e) { if (e.target === chatHead || e.target.closest('small,i')) closeChat(); });
   }
 
+  // keep the full-screen chat above the on-screen keyboard (iOS does not resize the page for it)
+  window.__fitChat = function () {
+    var c = $('#chat'), vv = window.visualViewport; if (!c || !vv || !mq.matches) return;
+    if (document.body.classList.contains('m-chat')) { c.style.top = vv.offsetTop + 'px'; c.style.height = vv.height + 'px'; c.style.bottom = 'auto'; }
+    else { c.style.top = ''; c.style.height = ''; c.style.bottom = ''; }
+  };
+  if (window.visualViewport) { visualViewport.addEventListener('resize', function () { window.__fitChat(); }); visualViewport.addEventListener('scroll', function () { window.__fitChat(); }); }
   function closeMenu() { document.body.classList.remove('m-menu'); }
   function openChat(focus) {
-    document.body.classList.add('m-chat'); closeMenu();
+    document.body.classList.add('m-chat'); closeMenu(); window.__fitChat();
     var d = document.querySelector('#mChat .dot'); if (d) d.classList.remove('show');
     var lg = $('#log'); if (lg) lg.scrollTop = 1e9;
     if (focus) requestAnimationFrame(function () { var m = $('#msg'); if (m) m.focus(); });
   }
-  function closeChat() { document.body.classList.remove('m-chat'); }
+  function closeChat() { document.body.classList.remove('m-chat'); window.__fitChat(); }
 
   function setMode(m, isAuto) {
     mode = m; autoMode = !!isAuto;
